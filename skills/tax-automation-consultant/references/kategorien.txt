@@ -1,0 +1,26 @@
+Material-/Wareneinkauf
+Fremdleistungen
+Personalkosten
+Abschreibung (inkl. Investitionsabzugsbetrag)
+Restbuchwert ausgeschiedener Anlagegüter
+Kfz-Kosten (inkl. Abschreibung)
+Raum- und Grundstückskosten (inkl. Abschreibung)
+Schuldzinsen
+Beiträge, Gebühren und Abgaben
+Versicherungen
+Reisekosten
+Geschenke bis 50,- €
+Bewirtungskosten
+Weg zum Betrieb (Entfernungspauschale)
+Homeoffice-Pauschale
+Portokosten
+Telefonkosten
+Bürobedarf
+Fachliteratur
+Fortbildungskosten
+Rechts- und Beratungskosten
+Miete/Leasing beweglicher Wirtschaftsgüter
+Werbung und Reklame
+Sonstige Betriebsausgaben
+Werkzeuge und Kleingeräte
+EDV-Kosten

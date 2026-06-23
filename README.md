@@ -140,3 +140,30 @@ npx skills add alpha1visionai-stack/claude-skills@karpathy-guidelines -g -y
 npx skills add alpha1visionai-stack/claude-skills@n8n-workflow -g -y
 npx skills add alpha1visionai-stack/claude-skills@brainstorming -g -y
 ```
+
+### Kreativ & Medien
+| Skill | Install | Beschreibung |
+|---|---|---|
+| `ascii-video` | `npx skills add alpha1visionai-stack/claude-skills@ascii-video -g -y` | ASCII-Art Videos generieren |
+| `manim-video` | `npx skills add alpha1visionai-stack/claude-skills@manim-video -g -y` | Mathematische Animationen mit Manim erstellen |
+| `popular-web-designs` | `npx skills add alpha1visionai-stack/claude-skills@popular-web-designs -g -y` | Bekannte Web-Designs nachbauen und analysieren |
+| `songwriting-and-ai-music` | `npx skills add alpha1visionai-stack/claude-skills@songwriting-and-ai-music -g -y` | Songwriting und KI-Musik-Generierung |
+| `youtube-content` | `npx skills add alpha1visionai-stack/claude-skills@youtube-content -g -y` | YouTube-Content-Strategie und -Analyse |
+| `powerpoint` | `npx skills add alpha1visionai-stack/claude-skills@powerpoint -g -y` | PowerPoint-Präsentationen erstellen und bearbeiten |
+
+### Research & Data
+| Skill | Install | Beschreibung |
+|---|---|---|
+| `huggingface-hub` | `npx skills add alpha1visionai-stack/claude-skills@huggingface-hub -g -y` | HuggingFace Hub — Modelle, Datasets, Spaces verwalten |
+| `polymarket` | `npx skills add alpha1visionai-stack/claude-skills@polymarket -g -y` | Polymarket Prediction Markets analysieren |
+
+### Tools & Integrationen (aus Gemini/Codex)
+| Skill | Install | Beschreibung |
+|---|---|---|
+| `agy-installer` | `npx skills add alpha1visionai-stack/claude-skills@agy-installer -g -y` | AGY-Installer-Workflow |
+| `chat-knowledge-manager` | `npx skills add alpha1visionai-stack/claude-skills@chat-knowledge-manager -g -y` | Chat-Wissen strukturiert verwalten |
+| `codex-openrouter-connector` | `npx skills add alpha1visionai-stack/claude-skills@codex-openrouter-connector -g -y` | Codex mit OpenRouter verbinden |
+| `mcp-setup-claude-cowork` | `npx skills add alpha1visionai-stack/claude-skills@mcp-setup-claude-cowork -g -y` | MCP-Setup für Claude Co-Working |
+| `tax-automation-consultant` | `npx skills add alpha1visionai-stack/claude-skills@tax-automation-consultant -g -y` | Steuererfassung (EÜR/USt) automatisieren |
+| `playwright` | `npx skills add alpha1visionai-stack/claude-skills@playwright -g -y` | Browser-Automatisierung via Playwright CLI |
+| `codex-primary-runtime` | `npx skills add alpha1visionai-stack/claude-skills@codex-primary-runtime -g -y` | Codex Primary Runtime Konfiguration |
