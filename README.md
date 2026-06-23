@@ -30,7 +30,17 @@ npx skills add alpha1visionai-stack/claude-skills@expert-council -g -y
 | `expert-council` | `npx skills add alpha1visionai-stack/claude-skills@expert-council -g -y` | Multi-Perspektiven-Entscheidungsframework mit llm-council CLI und /der-rat |
 | `der-rat` | `npx skills add alpha1visionai-stack/claude-skills@der-rat -g -y` | 5 unabhängige KI-Berater prüfen Entscheidungen und liefern klares Urteil (Deutsch) |
 | `brainstorming` | `npx skills add alpha1visionai-stack/claude-skills@brainstorming -g -y` | Strukturiertes Brainstorming vor kreativen oder Planungsaufgaben |
+| `klartext-auftrag` | `npx skills add alpha1visionai-stack/claude-skills@klartext-auftrag -g -y` | Aufträge und Anforderungen in Klartext-Format strukturieren (Deutsch) |
 | `prd` | `npx skills add alpha1visionai-stack/claude-skills@prd -g -y` | Product Requirements Documents erstellen |
+
+### OKR-Planung & Ziele
+| Skill | Install | Beschreibung |
+|---|---|---|
+| `brainstorm-okrs` | `npx skills add alpha1visionai-stack/claude-skills@brainstorm-okrs -g -y` | OKR-Brainstorming und Ideensammlung für Ziele |
+| `okr-plane` | `npx skills add alpha1visionai-stack/claude-skills@okr-plane -g -y` | OKRs mit Plane-Integration planen und verwalten |
+| `foundation-okr-writer` | `npx skills add alpha1visionai-stack/claude-skills@foundation-okr-writer -g -y` | Foundation OKRs schreiben und validieren |
+| `setting-okrs-goals` | `npx skills add alpha1visionai-stack/claude-skills@setting-okrs-goals -g -y` | OKRs und Ziele für Teams definieren und setzen |
+| `team-okrs` | `npx skills add alpha1visionai-stack/claude-skills@team-okrs -g -y` | Team-OKRs erstellen und visualisieren |
 
 ### n8n & Automatisierung
 | Skill | Install | Beschreibung |
@@ -74,6 +84,7 @@ npx skills add alpha1visionai-stack/claude-skills@expert-council -g -y
 | Skill | Install | Beschreibung |
 |---|---|---|
 | `document-consolidation` | `npx skills add alpha1visionai-stack/claude-skills@document-consolidation -g -y` | PDF/Word/Excel/PPTX mit markitdown konsolidieren |
+| `document-skills` | `npx skills add alpha1visionai-stack/claude-skills@document-skills -g -y` | Spezialisierte Skills für DOCX, PDF, PPTX und XLSX-Verarbeitung |
 | `documentation-writer` | `npx skills add alpha1visionai-stack/claude-skills@documentation-writer -g -y` | Technische Dokumentation nach Diátaxis-Standard |
 | `doc-coauthoring` | `npx skills add alpha1visionai-stack/claude-skills@doc-coauthoring -g -y` | Strukturierter Workflow für kollaborative Dokumentation |
 | `writing-plans` | `npx skills add alpha1visionai-stack/claude-skills@writing-plans -g -y` | Implementierungspläne vor mehrstufigen Aufgaben schreiben |
@@ -104,6 +115,7 @@ npx skills add alpha1visionai-stack/claude-skills@expert-council -g -y
 | Skill | Install | Beschreibung |
 |---|---|---|
 | `skill-creator` | `npx skills add alpha1visionai-stack/claude-skills@skill-creator -g -y` | Effektive Skills erstellen |
+| `claude-skills-starter` | `npx skills add alpha1visionai-stack/claude-skills@claude-skills-starter -g -y` | Starter-Template für Claude-Skills und Workflows |
 | `skill-manager` | `npx skills add alpha1visionai-stack/claude-skills@skill-manager -g -y` | Bestehendes Skill-System verwalten |
 | `find-skills` | `npx skills add alpha1visionai-stack/claude-skills@find-skills -g -y` | Skills im Open-Agent-Ökosystem entdecken |
 | `writing-skills` | `npx skills add alpha1visionai-stack/claude-skills@writing-skills -g -y` | Skills erstellen, bearbeiten und testen (TDD-Ansatz) |
