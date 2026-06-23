@@ -1,0 +1,86 @@
+:root {
+  /* Alpha Inspiration Farbpallette */
+  --alpha-dark-blue: #10556f;
+  --alpha-light-blue: #98daf2;
+  --alpha-accent-blue: #15779b;
+  --alpha-link-blue: #1e458a;
+  --alpha-white: #ffffff;
+  --alpha-gray-text: #757575;
+  --alpha-dark-text: #2b2b2b;
+
+  /* Fonts */
+  --primary-font: 'Open Sans', sans-serif;
+}
+
+body {
+  font-family: var(--primary-font);
+  color: var(--alpha-dark-text);
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  background-color: var(--alpha-dark-blue);
+  color: var(--alpha-white);
+  padding: 2rem;
+  text-align: center;
+}
+
+.hero {
+  background-color: var(--alpha-dark-blue);
+  color: var(--alpha-white);
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.hero h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.section-light {
+  background-color: var(--alpha-white);
+  padding: 4rem 2rem;
+}
+
+.section-accent {
+  background-color: var(--alpha-light-blue);
+  opacity: 0.9;
+  padding: 4rem 2rem;
+}
+
+.card {
+  border: 1px solid #efefef;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  transition: transform 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  border-color: var(--alpha-accent-blue);
+}
+
+button, .cta-button {
+  background-color: var(--alpha-link-blue);
+  color: var(--alpha-white);
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+button:hover {
+  background-color: var(--alpha-dark-blue);
+}
+
+footer {
+  background-color: #f4f4f4;
+  padding: 2rem;
+  text-align: center;
+  color: var(--alpha-gray-text);
+}

@@ -1,6 +1,6 @@
 ---
 name: google-drive-skill
-description: Use when accessing Google Drive files, listing folders, uploading documents, or searching Drive content programmatically from Codex.
+description: Use when accessing Google Drive files, listing folders, uploading documents, or searching Drive content programmatically from Claude Code.
 ---
 
 # Google Drive Skill

@@ -127,9 +127,9 @@ gws drive files create --upload ./file.txt --json '{"name": "file.txt"}'
 
 The CLI dynamically generates commands from Google's Discovery Service at runtime, automatically picking up new endpoints when Google adds them.
 
-## Integration with Codex
+## Integration with Claude Code
 
-When working with Google Workspace in Codex projects:
+When working with Google Workspace in Claude Code projects:
 
 1. Use structured JSON output for parsing responses
 2. Handle pagination with `--page-all` flag for large datasets

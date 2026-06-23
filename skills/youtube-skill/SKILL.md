@@ -1,6 +1,6 @@
 ---
 name: youtube-skill
-description: Use when extracting YouTube video transcripts, retrieving video metadata, or searching YouTube content programmatically from Codex.
+description: Use when extracting YouTube video transcripts, retrieving video metadata, or searching YouTube content programmatically from Claude Code.
 ---
 
 # YouTube Skill
@@ -41,7 +41,7 @@ YOUTUBE_API_KEY=your_api_key_here
 ### 2. Usage
 ```bash
 python scripts/get_transcript.py --video-id "dQw4w9WgXcQ"
-python scripts/search_videos.py --query "Codex AI tutorial" --max-results 10
+python scripts/search_videos.py --query "Claude AI tutorial" --max-results 10
 ```
 
 ## API Quota Notes

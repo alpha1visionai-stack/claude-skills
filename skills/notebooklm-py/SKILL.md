@@ -67,9 +67,9 @@ notebooklm login
 2. Use `notebooklm ask` to query content
 3. Save answers as notes
 
-## Integration with Codex
+## Integration with Claude Code
 
-When working with NotebookLM in Codex projects:
+When working with NotebookLM in Claude Code projects:
 
 1. Use explicit notebook IDs (`-n` flag) for parallel workflows
 2. Check processing status with `notebooklm show <id>`

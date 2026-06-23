@@ -26,10 +26,10 @@ Run the consolidation script on a directory or a specific file:
 
 ```bash
 # Process all documents in current directory
-python d:/OneDrive/Dokumente/Codex/.Codex/skills/document-consolidation/scripts/consolidate_docs.py .
+python d:/OneDrive/Dokumente/claude-code/.claude/skills/document-consolidation/scripts/consolidate_docs.py .
 
 # Process a specific file
-python d:/OneDrive/Dokumente/Codex/.Codex/skills/document-consolidation/scripts/consolidate_docs.py path/to/document.pdf
+python d:/OneDrive/Dokumente/claude-code/.claude/skills/document-consolidation/scripts/consolidate_docs.py path/to/document.pdf
 ```
 
 ## Standard Mapping
