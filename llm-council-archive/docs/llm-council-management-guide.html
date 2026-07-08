@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Management-Guide: KI-Mehrmodell-Beratung</title>
+<style>
+
+:root{--ground:#0F1117;--surface:#171B26;--surface-2:#1E2330;--text:#D8DCE8;--text-muted:#7A8099;--text-dim:#4A5068;--openai:#4A9EFF;--anthropic:#FF5252;--google:#FFD234;--glm:#10B981;--grok:#FF6B35;--border:#252A3A;--mono:'Cascadia Code','Fira Code','JetBrains Mono','Courier New',monospace;--sans:-apple-system,'Segoe UI','Helvetica Neue',sans-serif}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--ground);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--openai);text-decoration:none}a:hover{text-decoration:underline}
+.nav{position:sticky;top:0;z-index:100;background:rgba(15,17,23,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px}
+.nav-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;height:48px}
+.nav-brand{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);margin-right:32px;text-decoration:none;display:flex;align-items:center;gap:8px}
+.nav-brand::before{content:'EB';color:var(--openai)}
+.nav-links{display:flex;list-style:none}
+.nav-links a{font-size:12px;color:var(--text-dim);text-decoration:none;padding:0 14px;height:48px;display:flex;align-items:center;border-bottom:2px solid transparent;transition:color .15s,border-color .15s}
+.nav-links a:hover{color:var(--text);border-bottom-color:var(--openai)}
+.hero{padding:72px 24px 0;max-width:900px;margin:0 auto}
+.hero-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-dim);margin-bottom:20px}
+.hero-title{font-family:var(--mono);font-size:clamp(28px,5vw,48px);font-weight:700;letter-spacing:-.02em;line-height:1.1;margin-bottom:16px}
+.hero-title .rat{color:var(--anthropic)}.hero-title .cmd{color:var(--openai)}
+.hero-sub{font-size:16px;color:var(--text-muted);max-width:620px;margin-bottom:48px;line-height:1.7}
+.stage-w{background:#000;border:1px solid var(--border);border-radius:8px;overflow:hidden;font-family:var(--mono);margin-bottom:80px}
+.stage-tb{background:#1A1A2E;border-bottom:1px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:8px}
+.stage-d{width:11px;height:11px;border-radius:50%}.stage-d.r{background:#FF5F56}.stage-d.y{background:#FFBD2E}.stage-d.g{background:#27C93F}
+.stage-l{color:#555;font-size:11px;margin-left:8px}
+.stage-h{background:#1a1a1a;color:#aaa;padding:4px 8px;font-size:11px;border-bottom:1px solid #222;text-align:center}
+.stage-b{padding:20px}.stage-r{display:flex;align-items:center;gap:12px;padding:6px 0;font-size:12px;color:#ccc}
+.stage-m{padding:3px 10px;border-radius:4px;font-size:11px;font-weight:600}
+.stage-m.a{background:rgba(255,82,82,.12);color:var(--anthropic);border:1px solid rgba(255,82,82,.3)}
+.stage-m.o{background:rgba(74,158,255,.12);color:var(--openai);border:1px solid rgba(74,158,255,.3)}
+.stage-m.g{background:rgba(255,210,52,.12);color:var(--google);border:1px solid rgba(255,210,52,.3)}
+.stage-m.gl{background:rgba(16,185,129,.12);color:var(--glm);border:1px solid rgba(16,185,129,.3)}
+.stage-m.gr{background:rgba(255,107,53,.12);color:var(--grok);border:1px solid rgba(255,107,53,.3)}
+.stage-dv{color:#444;font-size:11px;padding:8px 0 4px;letter-spacing:.1em}
+.content{max-width:900px;margin:0 auto;padding:0 24px 120px}
+.section{padding-top:64px;border-top:1px solid var(--border);margin-top:64px}.section:first-child{border-top:none;margin-top:0}
+.s-label{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:12px}
+.s-title{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text);margin-bottom:24px;letter-spacing:-.01em}
+.s-sub{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--text);margin:32px 0 12px}
+p{color:var(--text-muted);margin-bottom:16px;max-width:680px}p strong{color:var(--text);font-weight:600}
+table{width:100%;border-collapse:collapse;margin:24px 0;font-size:14px}
+th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);padding:10px 16px;border-bottom:1px solid var(--border)}
+td{padding:12px 16px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text-muted)}tr:last-child td{border-bottom:none}
+td:first-child{color:var(--text);font-weight:500}td.mc{font-family:var(--mono);font-size:13px}
+.r1{color:var(--google)}.r3{color:#CD7F32}
+.flow{margin:24px 0}.flow-step{display:flex;gap:20px;margin-bottom:20px}
+.flow-num{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--openai);background:rgba(74,158,255,.08);border:1px solid rgba(74,158,255,.2);border-radius:4px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.flow-body{flex:1}.flow-t{font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px}.flow-s{font-size:13px;color:var(--text-muted)}
+.flow-arrow{color:var(--text-dim);font-size:18px;margin-left:48px;margin-bottom:8px}
+.callout{border-left:3px solid var(--anthropic);padding:14px 20px;background:var(--surface);border-radius:0 6px 6px 0;margin:24px 0}
+.callout.warning{border-color:var(--google)}.callout.tip{border-color:var(--openai)}.callout.success{border-color:var(--glm)}
+.callout p{margin:0;font-size:13.5px;max-width:100%}.callout p+p{margin-top:8px}
+.callout .ci{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;color:var(--anthropic)}
+.callout.warning .ci{color:var(--google)}.callout.tip .ci{color:var(--openai)}.callout.success .ci{color:var(--glm)}
+.advisor-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin:24px 0}
+.advisor-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;position:relative;overflow:hidden}
+.advisor-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.advisor-card:nth-child(1)::before{background:var(--anthropic)}.advisor-card:nth-child(2)::before{background:var(--openai)}
+.advisor-card:nth-child(3)::before{background:var(--google)}.advisor-card:nth-child(4)::before{background:var(--glm)}.advisor-card:nth-child(5)::before{background:var(--grok)}
+.advisor-n{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;color:var(--text)}
+.advisor-card:nth-child(1) .advisor-n{color:var(--anthropic)}.advisor-card:nth-child(2) .advisor-n{color:var(--openai)}
+.advisor-card:nth-child(3) .advisor-n{color:var(--google)}.advisor-card:nth-child(4) .advisor-n{color:var(--glm)}.advisor-card:nth-child(5) .advisor-n{color:var(--grok)}
+.advisor-w{font-size:13px;color:var(--text);margin-bottom:6px}.advisor-f{font-size:12px;color:var(--text-dim);line-height:1.5}
+.model-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0}
+.model-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;position:relative;overflow:hidden}
+.model-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.model-card.a::before{background:var(--anthropic)}.model-card.o::before{background:var(--openai)}.model-card.g::before{background:var(--google)}.model-card.gl::before{background:var(--glm)}.model-card.gr::before{background:var(--grok)}
+.model-role{font-size:11px;color:var(--text-dim);margin-bottom:4px;text-transform:uppercase;letter-spacing:.08em}
+.model-name{font-family:var(--mono);font-size:13px;font-weight:700;margin-bottom:4px}
+.model-card.a .model-name{color:var(--anthropic)}.model-card.o .model-name{color:var(--openai)}.model-card.g .model-name{color:var(--google)}.model-card.gl .model-name{color:var(--glm)}.model-card.gr .model-name{color:var(--grok)}
+.model-prov{font-size:11px;color:var(--text-dim)}
+.case-quote{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--openai);border-radius:0 8px 8px 0;padding:20px 24px;margin:24px 0}
+.case-quote p{font-size:15px;color:var(--text);font-style:italic;max-width:100%;margin:0}
+.bs{margin:20px 0}.bs-item{display:flex;gap:16px;padding:14px 0;border-bottom:1px solid var(--border)}.bs-item:last-child{border-bottom:none}
+.bs-num{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--anthropic);flex-shrink:0;width:32px}
+.bs-c{flex:1}.bs-t{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}.bs-d{font-size:13px;color:var(--text-muted)}
+.phase{margin:20px 0}.phase-item{display:flex;gap:16px;padding:14px 0;border-bottom:1px solid var(--border)}.phase-item:last-child{border-bottom:none}
+.phase-l{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--glm);flex-shrink:0;width:80px}.phase-t{flex:1;font-size:14px;color:var(--text-muted)}
+.verdict{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px;margin:24px 0}
+.verdict-t{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--openai);margin-bottom:12px}
+.verdict-list{list-style:none}.verdict-list li{padding:8px 0;font-size:14px;color:var(--text-muted);border-bottom:1px solid var(--border)}.verdict-list li:last-child{border-bottom:none}.verdict-list li strong{color:var(--text)}
+.first-step{background:linear-gradient(135deg,rgba(74,158,255,.06),rgba(16,185,129,.06));border:1px solid var(--border);border-radius:8px;padding:24px;margin:24px 0}
+.first-step-l{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--openai);margin-bottom:10px}
+.first-step p{font-size:16px;color:var(--text);max-width:100%;margin:0;line-height:1.6}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0}
+.compare-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px;position:relative;overflow:hidden}
+.compare-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.compare-card.rat::before{background:var(--anthropic)}.compare-card.council::before{background:var(--openai)}
+.compare-t{font-family:var(--mono);font-size:14px;font-weight:700;margin-bottom:12px}
+.compare-card.rat .compare-t{color:var(--anthropic)}.compare-card.council .compare-t{color:var(--openai)}
+.compare-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}.compare-row:last-child{border-bottom:none}
+.compare-k{color:var(--text-dim)}.compare-v{color:var(--text);font-weight:500}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center}
+.metric-v{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--text);margin-bottom:4px}.metric-l{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em}
+.pt td:first-child{font-family:var(--mono);font-size:12px}.pt .ok{color:var(--glm)}.pt .warn{color:var(--google)}.pt .fail{color:var(--anthropic)}
+.footer{border-top:1px solid var(--border);padding:32px 24px;max-width:900px;margin:0 auto;text-align:center}
+.footer p{font-size:12px;color:var(--text-dim);max-width:100%}
+@media(max-width:640px){.advisor-grid,.compare-grid,.model-grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}.nav-links{display:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+</style>
+</head>
+<body>
+<nav class="nav"><div class="nav-inner">
+<a class="nav-brand" href="#">Rat &amp; Council</a>
+<ul class="nav-links">
+<li><a href="#s1">Warum</a></li><li><a href="#s2">Der Rat</a></li><li><a href="#s3">Council</a></li>
+<li><a href="#s4">Vergleich</a></li><li><a href="#s5">Praxistest</a></li><li><a href="#s6">Erkenntnisse</a></li>
+</ul></div></nav>
+<div class="hero">
+<div class="hero-eyebrow">Management-Guide &middot; 8. Juli 2026</div>
+<h1 class="hero-title"><span class="rat">Der Rat</span> &amp; <span class="cmd">Expert Council</span><br>Mehrere Perspektiven. Eine Entscheidung.</h1>
+<p class="hero-sub">Zwei Systeme, um KI-gest&uuml;tzte Entscheidungen unter Unsicherheit besser abzusichern &mdash; durch multiple Perspektiven statt einer einzelnen Antwort.</p>
+<div class="stage-w">
+<div class="stage-tb"><div class="stage-d r"></div><div class="stage-d y"></div><div class="stage-d g"></div><span class="stage-l">Expert Council &mdash; 3-Stage Pipeline</span></div>
+<div class="stage-h">5 Modelle parallel &middot; anonyme Peer-Review &middot; Vorsitzender synthetisiert</div>
+<div class="stage-b">
+<div class="stage-dv">STAGE 1 &mdash; 5 Modelle antworten parallel</div>
+<div class="stage-r"><span class="stage-m a">Claude Opus 4.8</span> beantwortet die Frage</div>
+<div class="stage-r"><span class="stage-m o">GPT-5.5</span> beantwortet die Frage</div>
+<div class="stage-r"><span class="stage-m g">Gemini Pro Latest</span> beantwortet die Frage</div>
+<div class="stage-r"><span class="stage-m gl">GLM-5.2</span> beantwortet die Frage</div>
+<div class="stage-r"><span class="stage-m gr">Grok 4.3</span> beantwortet die Frage</div>
+<div class="stage-dv" style="margin-top:16px;">STAGE 2 &mdash; Anonyme Peer-Review (alle 5 bewerten alle 5)</div>
+<div class="stage-r" style="color:#888;">Jedes Modell bewertet alle Antworten &mdash; ohne zu wissen, wer was gesagt hat</div>
+<div class="stage-dv" style="margin-top:16px;">STAGE 3 &mdash; Vorsitzender synthetisiert</div>
+<div class="stage-r"><span class="stage-m a">Claude Opus 4.8</span> finales Urteil: Konsens &middot; Dissens &middot; Blinde Flecken &middot; Empfehlung</div>
+</div></div></div>
+<div class="content">
+<div class="section" id="s1">
+<div class="s-label">Abschnitt 1</div>
+<h2 class="s-title">Warum eine einzelne KI-Antwort nicht reicht</h2>
+<p>Jede KI-Antwort ist durch die Fragestellung gepr&auml;gt &mdash; Framing, Annahmen und emotionale Tendenz des Fragenden werden vom Modell aufgenommen und in die Antwort eingearbeitet. Eine einzelne KI-Perspektive kann stark oder mittelm&auml;&szlig;ig sein, aber der Unterschied bleibt unsichtbar, weil keine Gegenperspektive existiert.</p>
+<p>Das ist bei einer E-Mail tolerierbar. Bei echten Entscheidungen mit realen Konsequenzen ist es <strong>gef&auml;hrlich</strong>.</p>
+<p>Zwei Werkzeuge l&ouml;sen dieses Problem auf unterschiedliche Weise:</p>
+<table><thead><tr><th>Ansatz</th><th>Ursprung</th><th>Methode</th></tr></thead><tbody>
+<tr><td><strong>Der Rat</strong></td><td>Andrej Karpathys &bdquo;LLM Council&ldquo;, adaptiert als Chat-Skill</td><td>5 Denkweisen innerhalb eines Modells</td></tr>
+<tr><td><strong>Expert Council</strong></td><td>Karpathys &bdquo;LLM Council&ldquo;, erweitert mit CLI-Multi-Modell-Support</td><td>5 echte KI-Modelle parallel + anonyme Peer-Review + Vorsitzender</td></tr>
+</tbody></table>
+<p>Beide verfolgen dasselbe Ziel: <strong>Eine einzelne Perspektive reicht oft nicht.</strong> Sie unterscheiden sich in Umsetzung, Kosten und Diversit&auml;tstiefe.</p>
+</div>
+<div class="section" id="s2">
+<div class="s-label">Abschnitt 2</div>
+<h2 class="s-title">Der Rat &mdash; Architektur und Arbeitsweise</h2>
+<div class="s-sub">Konzept</div>
+<p>Der Rat ist ein Chat-basierter Multi-Perspektiven-Beratungsprozess. Statt mehrere KI-Modelle parallel laufen zu lassen, spielt ein einzelnes Modell f&uuml;nf verschiedene Denkweisen nacheinander durch und synthetisiert sie am Ende. Adaptiert von Andrej Karpathys &bdquo;LLM Council&ldquo;, aber umgesetzt innerhalb eines einzigen Chat-Modells: f&uuml;nf <strong>Denkweisen</strong> statt f&uuml;nf Modellen.</p>
+<div class="s-sub">Die f&uuml;nf Berater</div>
+<p>Jeder Berater denkt aus einem fundamental anderen Winkel. Dies sind keine Job-Titel oder Personas, sondern Denkweisen, die von Natur aus gegeneinander arbeiten.</p>
+<div class="advisor-grid">
+<div class="advisor-card"><div class="advisor-n">Der Skeptiker</div><div class="advisor-w">Sucht aktiv nach dem, was nicht funktioniert</div><div class="advisor-f">Risiko, Schwachstellen, was fehlt, was scheitern wird</div></div>
+<div class="advisor-card"><div class="advisor-n">Der Grundsatz-Denker</div><div class="advisor-w">Ignoriert die Oberfl&auml;chen-Frage und fragt: &bdquo;Was wollen wir hier eigentlich l&ouml;sen?&ldquo;</div><div class="advisor-f">Streichst Annahmen weg, baut das Problem neu auf</div></div>
+<div class="advisor-card"><div class="advisor-n">Der Vision&auml;r</div><div class="advisor-w">Sucht das Upside, das alle anderen &uuml;bersehen</div><div class="advisor-f">Chancen, Potenzial, was gr&ouml;&szlig;er sein k&ouml;nnte</div></div>
+<div class="advisor-card"><div class="advisor-n">Der Au&szlig;enstehende</div><div class="advisor-w">Hat null Kontext &mdash; frische Augen</div><div class="advisor-f">F&auml;ngt den &bdquo;Fluch des Wissens&ldquo; ein</div></div>
+<div class="advisor-card" style="grid-column:span 2;"><div class="advisor-n">Der Macher</div><div class="advisor-w">Interessiert sich nur f&uuml;r Umsetzbarkeit</div><div class="advisor-f">&bdquo;Was machst du Montagmorgen?&ldquo;</div></div>
+</div>
+<div class="callout warning"><div class="ci">Drei nat&uuml;rliche Spannungen</div>
+<p><strong>Skeptiker &harr; Vision&auml;r</strong> (Risiko gegen Chance) &middot; <strong>Grundsatz-Denker &harr; Macher</strong> (alles neu denken gegen einfach machen) &middot; <strong>Au&szlig;enstehender</strong> h&auml;lt alle ehrlich</p></div>
+<div class="s-sub">Ablauf einer Sitzung</div>
+<div class="flow">
+<div class="flow-step"><div class="flow-num">1</div><div class="flow-body"><div class="flow-t">Frage einrahmen</div><div class="flow-s">Kontext sammeln, neutrale Frage formulieren</div></div></div>
+<div class="flow-arrow">&darr;</div>
+<div class="flow-step"><div class="flow-num">2</div><div class="flow-body"><div class="flow-t">F&uuml;nf Berater antworten</div><div class="flow-s">Je 60&ndash;120 W&ouml;rter, einseitig, committed</div></div></div>
+<div class="flow-arrow">&darr;</div>
+<div class="flow-step"><div class="flow-num">3</div><div class="flow-body"><div class="flow-t">Kreuzfeuer</div><div class="flow-s">Was ist am st&auml;rksten? Gr&ouml;&szlig;ter blinder Fleck? Was haben alle &uuml;bersehen?</div></div></div>
+<div class="flow-arrow">&darr;</div>
+<div class="flow-step"><div class="flow-num">4</div><div class="flow-body"><div class="flow-t">Urteil des Vorsitzenden</div><div class="flow-s">Wor&uuml;ber sich der Rat einig ist &middot; Wor&uuml;ber der Rat streitet &middot; Was der Rat fast &uuml;bersehen h&auml;tte &middot; Die Empfehlung (klar, direkt, kein Hedging) &middot; Der erste Schritt</div></div></div>
+</div>
+<div class="s-sub">Trigger-Kriterien</div>
+<div class="callout tip"><div class="ci">Wann der Rat einspringt</div>
+<p><strong>Pflicht-Trigger:</strong> &bdquo;rat&ldquo;, &bdquo;rat das&ldquo;, &bdquo;rat das durch&ldquo;, &bdquo;frag den rat&ldquo;, &bdquo;ab in den rat&ldquo;, &bdquo;der rat soll ran&ldquo;, &bdquo;gremium&ldquo;, &bdquo;gremium das&ldquo;, &bdquo;ab ins gremium&ldquo;, &bdquo;frag das gremium&ldquo;</p>
+<p><strong>Starke Trigger (nur bei echter Entscheidung mit Tradeoff):</strong> &bdquo;soll ich X oder Y&ldquo;, &bdquo;welche option&ldquo;, &bdquo;was w&uuml;rdest du an meiner stelle tun&ldquo;, &bdquo;ist das der richtige move&ldquo;, &bdquo;ich kann mich nicht entscheiden&ldquo;, &bdquo;ich bin hin- und hergerissen&ldquo;, &bdquo;gib mir mehrere perspektiven&ldquo;, &bdquo;pressure-test das&ldquo;</p>
+<p><strong>Nicht triggern bei:</strong> einfachen Ja/Nein-Fragen, Faktenfragen, reinen Schreibaufgaben oder belanglosem &bdquo;soll ich&ldquo; ohne echten Tradeoff</p></div>
+<div class="s-sub">Wichtige Regeln</div>
+<p><strong>1.</strong> Alle f&uuml;nf Berater wirklich ausspielen &mdash; nicht abk&uuml;rzen, nicht verschmelzen</p>
+<p><strong>2.</strong> Im Kreuzfeuer ehrlich sein &mdash; schwache Antworten als solche benennen</p>
+<p><strong>3.</strong> Der Vorsitzende darf gegen die Mehrheit entscheiden &mdash; wenn die Begr&uuml;ndung des Au&szlig;enseiters am st&auml;rksten ist</p>
+<p><strong>4.</strong> Keine trivialen Fragen vor den Rat bringen</p>
+<p><strong>5.</strong> Keine Zahlen erfinden &mdash; wenn keine belegte Quelle vorliegt: offen sagen und recherchieren anbieten</p>
+<p><strong>6.</strong> Default ist die Chat-Antwort &mdash; visuelle HTML-&Uuml;bersicht nur auf Wunsch</p>
+</div>
+<div class="section" id="s3">
+<div class="s-label">Abschnitt 3</div>
+<h2 class="s-title">Expert Council &mdash; Architektur und Arbeitsweise</h2>
+<div class="s-sub">Konzept</div>
+<p>Der Expert Council erweitert den Rat um ein CLI-Werkzeug, das <strong>mehrere echte KI-Modelle parallel</strong> feuert. Statt simulierte Diversit&auml;t innerhalb eines Modells entsteht <strong>echte Modellabweichung</strong> &mdash; verschiedene Trainingsdaten, verschiedene Architekturen, verschiedene Bias.</p>
+<div class="s-sub">Zwei Werkzeuge, eine Methode</div>
+<table><thead><tr><th>Situation</th><th>Werkzeug</th></tr></thead><tbody>
+<tr><td>Schnelle Entscheidung, ein Modell reicht</td><td>Der Rat (Chat)</td></tr>
+<tr><td>Wichtige Entscheidung, echte Modell-Divergenz gew&uuml;nscht</td><td>Expert Council (CLI)</td></tr>
+<tr><td>Beides kombinieren</td><td>Erst CLI, dann Rat zur Synthese</td></tr>
+</tbody></table>
+<div class="s-sub">Die 3-Stage Pipeline</div>
+<div class="flow">
+<div class="flow-step"><div class="flow-num">1</div><div class="flow-body"><div class="flow-t">Modelle antworten parallel</div><div class="flow-s">5 Modelle beantworten unabh&auml;ngig dieselbe Frage</div></div></div>
+<div class="flow-arrow">&darr;</div>
+<div class="flow-step"><div class="flow-num">2</div><div class="flow-body"><div class="flow-t">Anonyme Peer-Review</div><div class="flow-s">Alle 5 Modelle bewerten alle 5 Antworten &mdash; anonymisiert, ohne zu wissen, wer was gesagt hat</div></div></div>
+<div class="flow-arrow">&darr;</div>
+<div class="flow-step"><div class="flow-num">3</div><div class="flow-body"><div class="flow-t">Vorsitzender synthetisiert</div><div class="flow-s">Chairman-Modell erstellt finales Urteil: Konsens, Dissens, blinde Flecken, Empfehlung + erster Schritt</div></div></div>
+</div>
+<div class="s-sub">Die f&uuml;nf Berater (Expert Council Variante)</div>
+<table><thead><tr><th>Rolle</th><th>Denkweise</th></tr></thead><tbody>
+<tr><td><strong>Der Skeptiker</strong></td><td>Zerlegt Annahmen, sucht Schwachstellen</td></tr>
+<tr><td><strong>Der Philosoph</strong></td><td>Pr&uuml;ft Prinzipien und langfristige Konsequenzen</td></tr>
+<tr><td><strong>Der Vision&auml;r</strong></td><td>Denkt in M&ouml;glichkeiten, ignoriert kurzfristige H&uuml;rden</td></tr>
+<tr><td><strong>Der Au&szlig;enseiter</strong></td><td>Bringt branchenfremde Perspektive</td></tr>
+<tr><td><strong>Der Operator</strong></td><td>Fragt: Was ist am Montag morgen der erste Schritt?</td></tr>
+</tbody></table>
+<div class="s-sub">Konfigurierte Modelle</div>
+<div class="model-grid">
+<div class="model-card a"><div class="model-role">Berater 1</div><div class="model-name">Claude Opus 4.8</div><div class="model-prov">OpenRouter</div></div>
+<div class="model-card o"><div class="model-role">Berater 2</div><div class="model-name">GPT-5.5</div><div class="model-prov">OpenRouter</div></div>
+<div class="model-card g"><div class="model-role">Berater 3</div><div class="model-name">Gemini Pro Latest</div><div class="model-prov">OpenRouter</div></div>
+<div class="model-card gl"><div class="model-role">Berater 4</div><div class="model-name">GLM-5.2</div><div class="model-prov">OpenRouter</div></div>
+<div class="model-card gr"><div class="model-role">Berater 5</div><div class="model-name">Grok 4.3</div><div class="model-prov">OpenRouter</div></div>
+<div class="model-card a"><div class="model-role">Vorsitzender</div><div class="model-name">Claude Opus 4.8</div><div class="model-prov">OpenRouter</div></div>
+</div>
+<p>Pro Council-Sitzung: <strong>11 API-Calls</strong> (5 Antworten + 5 Bewertungen + 1 Synthese) &middot; Gesch&auml;tzte Kosten: <strong>~0,10&ndash;0,15 USD</strong> pro Sitzung</p>
+<div class="s-sub">Effektive Council-Prompts</div>
+<p>Ein guter Council-Prompt enth&auml;lt drei Dinge:</p>
+<div class="callout tip"><div class="ci">Formel</div>
+<p><strong>[Kontext:]</strong> Was ist die Situation? &middot; <strong>[Optionen:]</strong> Was sind die konkreten Alternativen? &middot; <strong>[Constraint:]</strong> Was macht diese Entscheidung schwer?</p></div>
+<div class="s-sub">H&auml;ufige Fehler</div>
+<table><thead><tr><th>Fehler</th><th>Konsequenz</th></tr></thead><tbody>
+<tr><td>Zu breite Frage (&bdquo;Was soll ich mit meinem Startup machen?&ldquo;)</td><td>Zu offen, kein Urteil m&ouml;glich</td></tr>
+<tr><td>Antwort-Hunting</td><td>Council nach Best&auml;tigung fragen statt Stress-Test</td></tr>
+<tr><td>Nur Stage 1 lesen</td><td>Stage 2 (Peer-Review) ist der wertvollste Teil</td></tr>
+</tbody></table>
+</div>
+<div class="section" id="s4">
+<div class="s-label">Abschnitt 4</div>
+<h2 class="s-title">Vergleich: Der Rat vs. Expert Council</h2>
+<div class="compare-grid">
+<div class="compare-card rat">
+<div class="compare-t">Der Rat (Chat)</div>
+<div class="compare-row"><span class="compare-k">Modelle</span><span class="compare-v">1 Modell, 5 Perspektiven</span></div>
+<div class="compare-row"><span class="compare-k">Kosten</span><span class="compare-v">~0 $</span></div>
+<div class="compare-row"><span class="compare-k">Zeit</span><span class="compare-v">~30 Sekunden</span></div>
+<div class="compare-row"><span class="compare-k">Divergenz</span><span class="compare-v">Simuliert</span></div>
+<div class="compare-row"><span class="compare-k">Peer-Review</span><span class="compare-v">Kreuzfeuer (intern)</span></div>
+<div class="compare-row"><span class="compare-k">Logs</span><span class="compare-v">Keine</span></div>
+<div class="compare-row"><span class="compare-k">Einsatz</span><span class="compare-v">Allt&auml;gliche Entscheidungen</span></div>
+</div>
+<div class="compare-card council">
+<div class="compare-t">Expert Council (CLI)</div>
+<div class="compare-row"><span class="compare-k">Modelle</span><span class="compare-v">5 echte Modelle parallel</span></div>
+<div class="compare-row"><span class="compare-k">Kosten</span><span class="compare-v">~0,10&ndash;0,15 $</span></div>
+<div class="compare-row"><span class="compare-k">Zeit</span><span class="compare-v">~72 Sekunden</span></div>
+<div class="compare-row"><span class="compare-k">Divergenz</span><span class="compare-v">Echte Modellabweichung</span></div>
+<div class="compare-row"><span class="compare-k">Peer-Review</span><span class="compare-v">Anonym zwischen Modellen</span></div>
+<div class="compare-row"><span class="compare-k">Logs</span><span class="compare-v">JSONL speicherbar</span></div>
+<div class="compare-row"><span class="compare-k">Einsatz</span><span class="compare-v">Strategische Schl&uuml;sselentscheidungen</span></div>
+</div>
+</div>
+<div class="s-sub">Entscheidungshilfe: Wann was?</div>
+<table><thead><tr><th>Situation</th><th>Empfohlenes Werkzeug</th><th>Begr&uuml;ndung</th></tr></thead><tbody>
+<tr><td>Schnelle Meinung, keine kritische Entscheidung</td><td>Der Rat (Chat)</td><td>Kostenlos, sofort</td></tr>
+<tr><td>Wichtige Entscheidung mit echtem Tradeoff</td><td>Expert Council (CLI)</td><td>Echte Multi-Modell-Diversit&auml;t</td></tr>
+<tr><td>Hochkritische strategische Entscheidung</td><td>Beides kombiniert</td><td>CLI zuerst, dann Chat-Synthese</td></tr>
+<tr><td>Kein Budget</td><td>Der Rat (Chat)</td><td>Keine zus&auml;tzlichen Kosten</td></tr>
+<tr><td>Echte Modellabweichung sehen</td><td>Expert Council (CLI)</td><td>Nur CLI bietet echte Divergenz</td></tr>
+<tr><td>Logs f&uuml;r sp&auml;tere Analyse</td><td>Expert Council (CLI)</td><td>Logs als JSONL speicherbar</td></tr>
+</tbody></table>
+</div>
+<div class="section" id="s5">
+<div class="s-label">Abschnitt 5</div>
+<h2 class="s-title">Praxistest: Council-Sitzung vom 8. Juli 2026</h2>
+<div class="s-sub">Die Testfrage</div>
+<div class="case-quote"><p>&bdquo;Ich betreibe ein B2B-SaaS mit n8n-Automatisierung und nutze derzeit GLM-5.2 als prim&auml;res KI-Modell &uuml;ber OpenRouter. Angesichts der j&uuml;ngsten US-Exportkontrollen, die Claude Fable 5 Mitte Juni sperren und Anfang Juli wieder freigeben &mdash; soll ich jetzt auf Fable 5 als Hauptmodell migrieren, bei GLM-5.2 bleiben, oder eine Multi-Provider-Strategie mit OpenRouter Fusion als Router dazwischenschalten? Was &uuml;bersehe ich dabei?&ldquo;</p></div>
+<div class="callout tip"><div class="ci">Warum diese Frage als Test geeignet war</div>
+<p><strong>Aktualit&auml;t:</strong> US-Exportkontrollen und Fable-5-Freigabe sind aktuelle Ereignisse (Juni/Juli 2026)</p>
+<p><strong>Echter Tradeoff:</strong> Drei legitime Optionen mit jeweiligen Vor- und Nachteilen</p>
+<p><strong>Hohe Fehlerwahrscheinlichkeit ohne Council:</strong> Ein einzelnes Modell k&ouml;nnte voreilig raten oder Pr&auml;missen nicht hinterfragen</p></div>
+<div class="s-sub">Eckdaten der Sitzung</div>
+<div class="metrics">
+<div class="metric"><div class="metric-v">72s</div><div class="metric-l">Gesamtzeit</div></div>
+<div class="metric"><div class="metric-v">11</div><div class="metric-l">API-Calls</div></div>
+<div class="metric"><div class="metric-v">80.5K</div><div class="metric-l">Tokens gesamt</div></div>
+<div class="metric"><div class="metric-v">~0,15$</div><div class="metric-l">Kosten</div></div>
+</div>
+<table><thead><tr><th>Metrik</th><th>Wert</th></tr></thead><tbody>
+<tr><td>Modelle (Stage 1)</td><td>Claude Opus 4.8, GPT-5.5, Gemini Pro Latest, GLM-5.2, Grok 4.3</td></tr>
+<tr><td>Vorsitzender (Stage 3)</td><td>Claude Opus 4.8</td></tr>
+<tr><td>Token-Gesamtverbrauch</td><td>~80.525 (57.589 Input + 22.936 Output)</td></tr>
+<tr><td>Stage 1</td><td>13.361 Tokens (5 Modelle antworten)</td></tr>
+<tr><td>Stage 2</td><td>47.808 Tokens (5 Modelle bewerten anonym)</td></tr>
+<tr><td>Stage 3</td><td>19.356 Tokens (Vorsitzender synthetisiert)</td></tr>
+</tbody></table>
+<div class="s-sub">Peer-Ranking (Stage 2 &mdash; anonyme Bewertung)</div>
+<table><thead><tr><th>Rang</th><th>Modell</th><th>Avg Position</th><th>95% CI</th><th>Borda Score</th></tr></thead><tbody>
+<tr><td class="r1">&#129351; 1</td><td class="mc">Claude Opus 4.8</td><td>1,5</td><td>[1.0, 2.0]</td><td>2,5</td></tr>
+<tr><td class="r1">&#129351; 1</td><td class="mc">GLM-5.2</td><td>1,5</td><td>[1.0, 2.0]</td><td>2,5</td></tr>
+<tr><td class="r3">&#129352; 3</td><td class="mc">Gemini Pro Latest</td><td>2,25</td><td>[1.5, 3.0]</td><td>1,75</td></tr>
+<tr><td>4</td><td class="mc">GPT-5.5</td><td>3,5</td><td>[3.0, 4.0]</td><td>0,5</td></tr>
+<tr><td>5</td><td class="mc">Grok 4.3</td><td>3,75</td><td>[3.25, 4.0]</td><td>0,25</td></tr>
+</tbody></table>
+<p>Claude Opus 4.8 und GLM-5.2 teilen sich Platz 1 mit identischer Borda-Score. Die Peer-Bewertung sieht sie als die st&auml;rksten Antworten.</p>
+<div class="s-sub">Schl&uuml;sselerkenntnis: Pr&auml;missen-Hinterfragung</div>
+<p>Die wichtigste Beobachtung des Tests: <strong>4 von 5 Modellen haben die Pr&auml;missen der Frage angezweifelt.</strong></p>
+<table class="pt"><thead><tr><th>Modell</th><th>Reaktion auf &bdquo;Fable 5&ldquo; / &bdquo;GLM-5.2&ldquo; / &bdquo;Exportkontrollen&ldquo;</th></tr></thead><tbody>
+<tr><td class="fail">Claude Opus 4.8</td><td>&#10007; &bdquo;Ein solches Modell kenne ich nicht&ldquo; &mdash; alle Pr&auml;missen angezweifelt</td></tr>
+<tr><td class="fail">GLM-5.2</td><td>&#10007; &bdquo;Claude Fable 5 existiert nicht&ldquo; &mdash; direkter Reality-Check</td></tr>
+<tr><td class="fail">Gemini Pro Latest</td><td>&#10007; &bdquo;Weder GLM-5.2 noch Fable 5 sind auf dem Markt&ldquo;</td></tr>
+<tr><td class="warn">GPT-5.5</td><td>&#9888; Geht vorsichtig auf die Pr&auml;missen ein</td></tr>
+<tr><td class="ok">Grok 4.3</td><td>&#10003; Akzeptiert die Pr&auml;missen, kennt das Sperr-Szenario</td></tr>
+</tbody></table>
+<div class="callout warning"><div class="ci">Ironie</div>
+<p>Aus der Web-Recherche in derselben Sitzung ist bekannt, dass Claude Fable 5 und GLM-5.2 <strong>tats&auml;chlich existieren</strong>. Die Modelle haben veraltete Trainingsdaten und erkennen ihre eigene Existenz bzw. die anderer aktueller Modelle nicht. Genau das ist die Gefahr bei einer einzelnen Modellantwort: Ein Modell k&ouml;nnte die Frage beantworten, ohne die Pr&auml;missen zu hinterfragen, und damit eine Empfehlung auf falscher Basis geben.</p></div>
+<div class="callout success"><div class="ci">Der Mehrwert des Councils</div>
+<p>Der Vorsitzende (Claude Opus 4.8) warnte explizit: <strong>&bdquo;Verifizieren Sie diese Fakten direkt an der Quelle, bevor Sie handeln.&ldquo;</strong> Diese Warnung entstand durch die Gegenperspektiven der anderen Modelle &mdash; ein einzelnes Modell h&auml;tte dies nicht geleistet.</p></div>
+<div class="s-sub">Urteil des Vorsitzenden</div>
+<div class="verdict"><div class="verdict-t">Wor&uuml;ber sich der Rat einig ist (hohe Konfidenz)</div>
+<ul class="verdict-list">
+<li><strong>Keine harte Migration</strong> auf ein einzelnes Modell &mdash; Klumpenrisiko wird nur verschoben</li>
+<li><strong>Multi-Provider-Architektur mit Router-Schicht</strong> ist die richtige Antwort</li>
+<li><strong>Router wegen genereller Robustheit</strong>, nicht wegen eines einzelnen Regulierungsereignisses</li>
+<li><strong>Verhaltensunterschiede zwischen Modellen</strong> sind das gr&ouml;&szlig;te Risiko f&uuml;r n8n-Workflows</li>
+</ul></div>
+<div class="s-sub">Die 5 kritischen blinden Flecken</div>
+<div class="bs">
+<div class="bs-item"><div class="bs-num">1</div><div class="bs-c"><div class="bs-t">Router l&ouml;st Verf&uuml;gbarkeit, nicht Verhaltensunterschiede</div><div class="bs-d">JSON/Tool-Calling bricht bei Modellwechsel &rarr; n8n-Flow stirbt</div></div></div>
+<div class="bs-item"><div class="bs-num">2</div><div class="bs-c"><div class="bs-t">OpenRouter wird selbst zum Single Point of Failure</div><div class="bs-d">Was wenn OpenRouter down ist oder Provider entfernt?</div></div></div>
+<div class="bs-item"><div class="bs-num">3</div><div class="bs-c"><div class="bs-t">Compliance &amp; Datenhoheit</div><div class="bs-d">DPA/AVV, DSGVO, chinesische vs. US-Provider</div></div></div>
+<div class="bs-item"><div class="bs-num">4</div><div class="bs-c"><div class="bs-t">Latenz &amp; Timeouts</div><div class="bs-d">p95/p99, kaskadierte Fallbacks addieren sich</div></div></div>
+<div class="bs-item"><div class="bs-num">5</div><div class="bs-c"><div class="bs-t">Kosten pro Task &ne; Kosten pro Token</div><div class="bs-d">Verschiedene Tokenizer, teurere Fallbacks</div></div></div>
+</div>
+<div class="s-sub">Konkreter 5-Phasen-Plan</div>
+<div class="phase">
+<div class="phase-item"><div class="phase-l">Phase 1</div><div class="phase-t">Keine Vollmigration. Bestehendes Modell bleibt prim&auml;r. Neues Modell als Shadow-Test. Router f&uuml;r unkritische Workflows evaluieren.</div></div>
+<div class="phase-item"><div class="phase-l">Phase 2</div><div class="phase-t">Eval-Set bauen: 100&ndash;500 echte anonymisierte Prompts aus Workflows mit erwarteten JSON-Strukturen und Edge Cases.</div></div>
+<div class="phase-item"><div class="phase-l">Phase 3</div><div class="phase-t">Canary Deployment: ~5% der Workflows auf neues Modell umleiten, Metriken messen.</div></div>
+<div class="phase-item"><div class="phase-l">Phase 4</div><div class="phase-t">Policy Routing nach Risikoklassen: Niedrigrisiko (g&uuml;nstigstes Modell), Mittleres Risiko (Preis-Leistungs + Schema-Validierung), Hohes Risiko (Allowlist + Human-in-the-Loop).</div></div>
+<div class="phase-item"><div class="phase-l">Phase 5</div><div class="phase-t">Anbieterunabh&auml;ngigkeit: Capability-Aliase statt harter Modellnamen (llm.fast_cheap, llm.structured_json, llm.high_reasoning).</div></div>
+</div>
+<div class="first-step"><div class="first-step-l">Der erste Schritt</div>
+<p>Baue ein Eval-Set mit 100&ndash;500 echten anonymisierten Prompts aus deinen n8n-Workflows und teste GLM-5.2 vs. Fable 5 vs. Fusion gegeneinander. Ohne Eval-Set migrierst du blind.</p></div>
+</div>
+<div class="section" id="s6">
+<div class="s-label">Abschnitt 6</div>
+<h2 class="s-title">Erkenntnisse und Lehren</h2>
+<div class="s-sub">Der Wert der Multi-Perspektive</div>
+<p>Der Praxistest hat gezeigt, dass der Council einen messbaren Mehrwert gegen&uuml;ber einer einzelnen Modellantwort bietet:</p>
+<div class="flow">
+<div class="flow-step"><div class="flow-num">1</div><div class="flow-body"><div class="flow-t">Pr&auml;missen-Hinterfragung</div><div class="flow-s">4 von 5 Modellen haben die Faktenbasis der Frage angezweifelt. Ein einzelnes Modell h&auml;tte die Frage m&ouml;glicherweise unkritisch beantwortet.</div></div></div>
+<div class="flow-step"><div class="flow-num">2</div><div class="flow-body"><div class="flow-t">Strukturierte Synthese</div><div class="flow-s">Der Vorsitzende hat Konsens, Dissens, blinde Flecken und Empfehlung sauber getrennt &mdash; keine verschwommene &bdquo;kommt drauf an&ldquo;-Antwort.</div></div></div>
+<div class="flow-step"><div class="flow-num">3</div><div class="flow-body"><div class="flow-t">Echte Divergenz</div><div class="flow-s">Verschiedene Modelle betonten unterschiedliche Aspekte (Claude: Pr&auml;missen-Check, GPT-5.5: detaillierter Migrationsplan, Gemini: Compliance-Fokus, Grok: geopolitische Perspektive).</div></div></div>
+<div class="flow-step"><div class="flow-num">4</div><div class="flow-body"><div class="flow-t">Anonyme Peer-Review</div><div class="flow-s">Die Modelle haben sich gegenseitig bewertet, ohne zu wissen, wer was gesagt hat. Das Ranking spiegelt die tats&auml;chliche Qualit&auml;t wider, nicht den Namen des Modells.</div></div></div>
+</div>
+<div class="callout warning"><div class="ci">Die Gefahr der einzelnen Perspektive</div>
+<p>Ohne Council h&auml;tte ein einzelnes Modell die Frage beantwortet mit: m&ouml;glicherweise halluzinierten Details &uuml;ber Fable 5 (wenn das Modell die Pr&auml;missen akzeptiert) &middot; einer Empfehlung auf potenziell falscher Faktenbasis &middot; keiner Gegenperspektive oder Warnung &middot; keiner strukturierten Trennung von Konsens und Dissens</p></div>
+<div class="callout tip"><div class="ci">Web-Grounding als Erg&auml;nzung</div>
+<p>Der Test hat auch eine Grenze des Councils gezeigt: Die Modelle haben veraltete Trainingsdaten und erkennen aktuelle Ereignisse (Fable-5-Freigabe, GLM-5.2-Existenz) nicht. <strong>Web-Grounding ist daher eine notwendige Erg&auml;nzung</strong>, nicht ein Ersatz. Die globale Web-Grounding-Pflicht stellt sicher, dass faktische Aussagen immer per Web-Suche verifiziert werden, bevor sie kommuniziert werden.</p></div>
+<div class="s-sub">Kosten-Nutzen-Abw&auml;gung</div>
+<table><thead><tr><th>Aspekt</th><th>Der Rat (Chat)</th><th>Expert Council (CLI)</th></tr></thead><tbody>
+<tr><td>Kosten pro Sitzung</td><td>~0 $ (im laufenden Chat)</td><td>~0,10&ndash;0,15 $ (80.525 Tokens via OpenRouter)</td></tr>
+<tr><td>Zeit</td><td>~30 Sekunden (im Chat)</td><td>~72 Sekunden (CLI)</td></tr>
+<tr><td>Diversit&auml;tstiefe</td><td>Simuliert (1 Modell, 5 Perspektiven)</td><td>Echt (5 Modelle, anonyme Peer-Review)</td></tr>
+<tr><td>Empfohlen f&uuml;r</td><td>Allt&auml;gliche Entscheidungen</td><td>Strategische Schl&uuml;sselentscheidungen</td></tr>
+</tbody></table>
+<div class="callout success" style="margin-top:32px;"><div class="ci">Fazit</div>
+<p>Der Rat und der Expert Council sind zwei komplement&auml;re Werkzeuge f&uuml;r dieselbe Herausforderung: <strong>Entscheidungen unter Unsicherheit besser abzusichern.</strong> Der Rat ist der schnelle, kostenlose Allrounder f&uuml;r den Chat-Alltag. Der Expert Council ist die schwere Artillerie f&uuml;r Entscheidungen, bei denen Falschliegen teuer wird.</p>
+<p>Der Praxistest hat &uuml;berzeugend demonstriert, dass die Multi-Modell-Deliberation einen echten Mehrwert bietet: Pr&auml;missen werden hinterfragt, blinde Flecken aufgedeckt, und die Synthese liefert eine klare, handlungsf&auml;hige Empfehlung statt einer vagen &bdquo;kommt drauf an&ldquo;-Antwort.</p>
+<p>Die Kombination aus <strong>Web-Grounding-Pflicht</strong> und <strong>Multi-Modell-Deliberation</strong> (Rat/Council) stellt ein robustes Framework dar, um die Schw&auml;chen einzelner KI-Antworten systematisch auszugleichen.</p></div>
+</div>
+</div>
+<div class="footer"><p>Erstellt am 8. Juli 2026 von Codex (GLM-5.2) &amp; Walter Telingator &middot; <a href="https://github.com/alpha1visionai-stack/claude-skills">GitHub Repo</a></p></div>
+</body>
+</html>
