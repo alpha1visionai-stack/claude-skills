@@ -22,13 +22,75 @@ npx skills add alpha1visionai-stack/claude-skills@expert-council -g -y
 
 ---
 
+## llm-council-archive
+
+Komplettes Archiv zur Installation und Nutzung der Multi-Modell-Beratungssysteme
+**"Der Rat"** (Chat-basiert, 5 Perspektiven in einem Modell) und **"Expert Council"**
+(CLI-basiert, 5 echte Modelle parallel mit anonymer Peer-Review).
+
+### Inhalt
+
+```
+llm-council-archive/
+├── README.md                              # Anleitung + Schnellstart
+├── docs/
+│   ├── Der_Rat_und_Expert_Council_Dokumentation.md   # Vollständige Doku (559 Zeilen)
+│   └── llm-council-handbuch.html                      # HTML-Handbuch
+├── skills/
+│   ├── der-rat/SKILL.md                   # Rat-Skill (Chat-basiert)
+│   └── expert-council/SKILL.md            # Council-Skill (CLI-basiert)
+├── config/
+│   ├── council-config.json                # 5-Modell-Konfiguration
+│   └── AGENTS.md                          # Web-Grounding-Pflicht
+├── install/
+│   ├── ubuntu/install_ubuntu.sh           # Ubuntu-Installer
+│   └── windows/install_windows.ps1        # Windows-Installer
+└── logs/
+    └── 3 Beispiel-Runs (*.jsonl)          # Live Council-Sitzungen
+```
+
+### Ein-Klick-Installation
+
+```bash
+# Ubuntu / Linux
+cd llm-council-archive
+chmod +x install/ubuntu/install_ubuntu.sh
+./install/ubuntu/install_ubuntu.sh "sk-or-v1-dein-openrouter-key"
+
+# Windows (PowerShell)
+cd llm-council-archive
+.\install\windows\install_windows.ps1 -ApiKey "sk-or-v1-dein-openrouter-key"
+```
+
+Der Installer richtet automatisch: Python 3.11+, llm CLI, llm-council-skill,
+LLM-Plugins (Gemini, Anthropic), Konfiguration, Shell-Alias `rat` und beide Skills.
+
+> 💡 Benötigt wird ein [OpenRouter API-Key](https://openrouter.ai/keys) für den Zugriff auf alle Modelle über einen einzigen Provider.
+
+### Konfigurierte Modelle
+
+| Rolle | Modell | Provider |
+|-------|--------|----------|
+| Berater 1 | Claude Opus 4.8 | OpenRouter |
+| Berater 2 | GPT-5.5 | OpenRouter |
+| Berater 3 | Gemini Pro Latest | OpenRouter |
+| Berater 4 | GLM-5.2 | OpenRouter |
+| Berater 5 | Grok 4.3 | OpenRouter |
+| Vorsitzender | Claude Opus 4.8 | OpenRouter |
+
+Geschätzte Kosten: ~0,10–0,15 USD pro Sitzung (11 API-Calls).
+
+→ Vollständige Anleitung: [`llm-council-archive/README.md`](llm-council-archive/README.md)
+
+---
+
 ## Skills nach Kategorie
 
 ### Entscheidung & Strategie
 | Skill | Install | Beschreibung |
 |---|---|---|
-| `expert-council` | `npx skills add alpha1visionai-stack/claude-skills@expert-council -g -y` | Multi-Perspektiven-Entscheidungsframework mit llm-council CLI und /der-rat |
-| `der-rat` | `npx skills add alpha1visionai-stack/claude-skills@der-rat -g -y` | 5 unabhängige KI-Berater prüfen Entscheidungen und liefern klares Urteil (Deutsch) |
+| `expert-council` | `npx skills add alpha1visionai-stack/claude-skills@expert-council -g -y` | Multi-Perspektiven-Entscheidungsframework: 5 echte Modelle parallel mit anonymer Peer-Review via llm-council CLI |
+| `der-rat` | `npx skills add alpha1visionai-stack/claude-skills@der-rat -g -y` | 5 unabhängige KI-Berater prüfen Entscheidungen und liefern klares Urteil (Chat-basiert, Deutsch) |
 | `brainstorming` | `npx skills add alpha1visionai-stack/claude-skills@brainstorming -g -y` | Strukturiertes Brainstorming vor kreativen oder Planungsaufgaben |
 | `klartext-auftrag` | `npx skills add alpha1visionai-stack/claude-skills@klartext-auftrag -g -y` | Aufträge und Anforderungen in Klartext-Format strukturieren (Deutsch) |
 | `prd` | `npx skills add alpha1visionai-stack/claude-skills@prd -g -y` | Product Requirements Documents erstellen |
