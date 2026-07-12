@@ -6,8 +6,8 @@ import subprocess
 import argparse
 import re
 
-COMPOSE_PATH = "/root/stacks/main/docker-compose.yml"
-ENV_PATH = "/root/stacks/main/.env"
+COMPOSE_PATH = "/root/stacks/n8n/docker-compose.yml"
+ENV_PATH = "/root/stacks/n8n/.env"
 
 SANDBOX_SERVICES_YAML = """
   n8n-sandbox-tls-init:
