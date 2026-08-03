@@ -225,6 +225,11 @@ npx skills add alpha1visionai-stack/claude-skills@brainstorming -g -y
 | `youtube-content` | `npx skills add alpha1visionai-stack/claude-skills@youtube-content -g -y` | YouTube-Content-Strategie und -Analyse |
 | `powerpoint` | `npx skills add alpha1visionai-stack/claude-skills@powerpoint -g -y` | PowerPoint-Präsentationen erstellen und bearbeiten |
 
+### Textprüfung & Qualität
+| Skill | Install | Beschreibung |
+|---|---|---|
+| `ki-text-check` | `npx skills add alpha1visionai-stack/claude-skills@ki-text-check -g -y` | Deutsche Texte auf KI-Erzeugung prüfen — Indizienbefund mit Fundstellen statt Blackbox-Prozentzahl, vollständig offline |
+
 ### Research & Data
 | Skill | Install | Beschreibung |
 |---|---|---|

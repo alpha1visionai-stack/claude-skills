@@ -27,6 +27,7 @@ This directory contains shared skills available across all your Claude Code proj
 | `linkedin-automation` | Automate LinkedIn posts via Rube MCP. | `linkedin-automation.md` |
 | `skill-creator` | Guide for creating effective Claude skills. | `skill-creator.md` |
 | `skill-share` | Create and share skills via Slack (Legacy). | `skill-share.md` |
+| `ki-text-check` | Check German text for AI authorship — evidence-based report, offline. | `ki-text-check/` |
 
 ## Skill Creator Tools
 
