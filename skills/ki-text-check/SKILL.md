@@ -129,6 +129,25 @@ Befund:
 Weise in solchen Fällen aktiv auf diese Wege hin. Ein falsch beschuldigter
 Mensch ist ein realer Schaden, und Stildetektoren haben bekannte Fehlerquoten.
 
+### 6. Ab Indizienwert 62: Überarbeitung anbieten
+
+Liegt der Wert im Band „überwiegend Indizien für KI-Erzeugung" (62) oder
+darüber **und** ist es der eigene Text des Nutzers, biete am Ende des Befunds
+in einem Satz an, ihn zu überarbeiten — und übernimm bei Zustimmung den Skill
+`ki-text-umschreiben`. Übergib ihm den Pfad zur Textdatei und den Befund
+(`--json`), damit er gezielt gegen die gefundenen Indizien arbeitet statt
+blind alle Eingriffe anzuwenden.
+
+Unter 62 nicht von selbst anbieten. Einen Text umzuschreiben, der bei 50
+liegt, ist Arbeit ohne Ertrag und macht ihn oft schlechter.
+
+Bei fremden Texten ist die Überarbeitung nicht das Thema — dort geht es um
+die Beurteilung. Nur anbieten, wenn der Nutzer ausdrücklich danach fragt und
+erkennbar berechtigt ist, den Text zu bearbeiten.
+
+Ist `ki-text-umschreiben` nicht installiert, gib stattdessen die
+Eingriffsliste aus dem Abschnitt weiter unten aus.
+
 ## Kurzrubrik (falls das Skript nicht verfügbar ist)
 
 Startwert 50. Punkte addieren, auf 0–100 klammern. Bei Texten unter
@@ -165,8 +184,12 @@ menschlich · 0–24 stark menschlich.
 
 ## Wenn der Nutzer seinen eigenen Text entschärfen will
 
-Dann ist der Score Nebensache. Liefere stattdessen konkrete Eingriffe, nach
-Wirkung sortiert:
+Dafür gibt es den Skill `ki-text-umschreiben` — er arbeitet gezielt gegen die
+Indizien aus diesem Befund, setzt Platzhalter statt erfundener Details und
+misst das Ergebnis neu. Übernimm ihn, wenn er installiert ist.
+
+Ohne diesen Skill: Der Score ist dann Nebensache, liefere stattdessen
+konkrete Eingriffe, nach Wirkung sortiert:
 
 1. **Rhythmus brechen.** Zwei bis drei Sätze auf unter fünf Wörter kürzen,
    einen auf über dreißig verlängern. Das ist der wirksamste Einzelgriff.

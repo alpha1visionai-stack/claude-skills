@@ -28,6 +28,7 @@ This directory contains shared skills available across all your Claude Code proj
 | `skill-creator` | Guide for creating effective Claude skills. | `skill-creator.md` |
 | `skill-share` | Create and share skills via Slack (Legacy). | `skill-share.md` |
 | `ki-text-check` | Check German text for AI authorship — evidence-based report, offline. | `ki-text-check/` |
+| `ki-text-umschreiben` | Rewrite AI-sounding German text against the check findings. | `ki-text-umschreiben/` |
 
 ## Skill Creator Tools
 
