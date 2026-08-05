@@ -10,22 +10,49 @@ import xml.etree.ElementTree as ET
 
 # Parameter-Mapping von Adobe Lightroom (XMP) -> Luminar Neo MIPL
 XMP_PARAM_MAP = {
-    'Exposure2012': ('MIPLExposureEffect', 'Exposure', lambda x: float(x) * 20.0),
-    'Contrast2012': ('MIPLContrastEffect', 'Contrast', lambda x: float(x)),
-    'Highlights2012': ('MIPLHighlightsEffect', 'Highlights', lambda x: float(x)),
-    'Shadows2012': ('MIPLDynBrightnessEffect', 'Smart Tone', lambda x: float(x)),
-    'Whites2012': ('MIPLBlackWhiteEffect', 'Whites', lambda x: float(x)),
-    'Blacks2012': ('MIPLBlackWhiteEffect', 'Blacks', lambda x: float(x)),
-    'Clarity2012': ('MIPLClarityEffect', 'Clarity', lambda x: float(x)),
-    'Vibrance': ('MIPLVibranceEffect', 'Vibrance', lambda x: float(x)),
-    'Saturation': ('MIPLSaturationEffect', 'Saturation', lambda x: float(x)),
-    'Dehaze': ('MIPLDehazeEffect', 'Dehaze', lambda x: float(x)),
-    'Sharpness': ('MIPLSharpenEffect', 'Radius', lambda x: float(x)),
-    'Temperature': ('MIPLDevelopCommonEffectID', 'Temperature', lambda x: float(x)),
-    'Tint': ('MIPLDevelopCommonEffectID', 'Tint', lambda x: float(x)),
-    'PostCropVignetteAmount': ('MIPLVignetteEffect', 'Amount', lambda x: float(x)),
-    'GrainAmount': ('MIPLGrainNewEffect', 'Amount', lambda x: float(x)),
+    'Exposure2012': ('MIPLExposureEffect', 'Exposure', lambda x, p: float(x) * 20.0),
+    'Contrast2012': ('MIPLContrastEffect', 'Contrast', lambda x, p: float(x)),
+    'Highlights2012': ('MIPLHighlightsEffect', 'Highlights', lambda x, p: float(x)),
+    'Shadows2012': ('MIPLDynBrightnessEffect', 'Smart Tone', lambda x, p: float(x)),
+    'Whites2012': ('MIPLBlackWhiteEffect', 'Whites', lambda x, p: float(x)),
+    'Blacks2012': ('MIPLBlackWhiteEffect', 'Blacks', lambda x, p: float(x)),
+    'Clarity2012': ('MIPLClarityEffect', 'Clarity', lambda x, p: float(x)),
+    'Vibrance': ('MIPLVibranceEffect', 'Vibrance', lambda x, p: float(x)),
+    'Saturation': ('MIPLSaturationEffect', 'Saturation', lambda x, p: float(x)),
+    'Dehaze': ('MIPLDehazeEffect', 'Dehaze', lambda x, p: float(x)),
+    'Sharpness': ('MIPLSharpenEffect', 'Radius', lambda x, p: float(x)),
+    'Temperature': ('MIPLDevelopCommonEffectID', 'Temperature', lambda x, p: transform_temperature(x, p)),
+    'Tint': ('MIPLDevelopCommonEffectID', 'Tint', lambda x, p: transform_tint(x, p)),
+    'PostCropVignetteAmount': ('MIPLVignetteEffect', 'Amount', lambda x, p: float(x)),
+    'GrainAmount': ('MIPLGrainNewEffect', 'Amount', lambda x, p: float(x)),
 }
+
+def transform_temperature(val_str, params):
+    wb = params.get('WhiteBalance', 'Custom')
+    if wb == 'As Shot':
+        return None
+    try:
+        v = float(val_str)
+        if v > 1000.0:
+            # Umrechnung von absolutem Kelvin-Wert (z.B. 4800 K) 
+            # in den relativen Luminar Neo Bereich (-100 bis +100 um 5500 K):
+            v_rel = (v - 5500.0) / 35.0
+            return round(max(-100.0, min(100.0, v_rel)), 2)
+        return round(max(-100.0, min(100.0, v)), 2)
+    except Exception:
+        return None
+
+def transform_tint(val_str, params):
+    wb = params.get('WhiteBalance', 'Custom')
+    try:
+        v = float(val_str)
+        if wb == 'As Shot' and v == 0.0:
+            return None
+        if abs(v) > 100.0:
+            v = v / 1.5
+        return round(max(-100.0, min(100.0, v)), 2)
+    except Exception:
+        return None
 
 def convert_mipl_effect(eff):
     """Wandelt einen MIPL-Effekt aus dem Apple Plist XML Format in das Luminar Neo JSON Format um."""
@@ -78,7 +105,12 @@ def parse_xmp_file(filepath):
         if k1 == k2:
             params[k1] = v
 
-    # Fallback für alte .lrtemplate Textdateien (key = value)
+    # Fallback für alte .lrtemplate Textdateien (string & numerische key = value)
+    matches_str = re.findall(r'([A-Za-z0-9_]+)\s*=\s*"([^"]+)"', content)
+    for k, v in matches_str:
+        if k not in params:
+            params[k] = v
+
     matches_lrtemplate = re.findall(r'([A-Za-z0-9_]+)\s*=\s*([+\-0-9.]+)', content)
     for k, v in matches_lrtemplate:
         if k not in params:
@@ -96,9 +128,12 @@ def convert_xmp_file(p_path, preset_name=None):
         if xmp_key in params:
             val_str = params[xmp_key]
             try:
-                trans_val = transform_fn(val_str)
+                trans_val = transform_fn(val_str, params)
             except Exception:
                 trans_val = val_str
+
+            if trans_val is None:
+                continue
 
             if effect_id not in effects_by_id:
                 effects_by_id[effect_id] = []
