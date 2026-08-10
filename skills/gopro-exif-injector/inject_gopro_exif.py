@@ -200,11 +200,12 @@ def apply_nik_color_efex_ai_gen_2(
     chroma_noise = np.random.normal(0, 3.0 * grain_strength, (h, w, 3)).astype(np.float32)
     
     lum = np.clip((0.299 * arr_vignetted[:, :, 0] + 0.587 * arr_vignetted[:, :, 1] + 0.114 * arr_vignetted[:, :, 2]) / 255.0, 0.0, 1.0)
-    grain_mask = np.clip(np.sin(lum * np.pi) ** 0.7, 0.3, 1.0)
+    sin_lum = np.clip(np.sin(lum * np.pi), 0.0, 1.0)
+    grain_mask = np.clip(sin_lum ** 0.7, 0.3, 1.0)
     
     total_grain = (soft_noise + sharp_noise + chroma_noise) * grain_mask[:, :, np.newaxis]
     
-    arr_final = arr_vignetted + total_grain
+    arr_final = np.nan_to_num(arr_vignetted + total_grain, nan=0.0)
     arr_final = np.clip(np.round(arr_final), 0, 255).astype(np.uint8)
     return Image.fromarray(arr_final)
 
