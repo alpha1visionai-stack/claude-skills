@@ -539,7 +539,8 @@ def main():
     use_nik = not args.no_nik
     use_center_vignette = args.center_vignette and (args.vignette_strength > 0)
     vignette_strength = args.vignette_strength if use_center_vignette else 0.0
-    smear_strength = max(0.0, args.smear)
+    smear_val = args.smear / 100.0 if args.smear > 1.0 else args.smear
+    smear_strength = max(0.0, smear_val)
     color_boost = max(0.0, args.color)
     versioned = not args.no_version
     target = os.path.abspath(args.target)
