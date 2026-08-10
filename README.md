@@ -224,6 +224,8 @@ npx skills add alpha1visionai-stack/claude-skills@brainstorming -g -y
 | `songwriting-and-ai-music` | `npx skills add alpha1visionai-stack/claude-skills@songwriting-and-ai-music -g -y` | Songwriting und KI-Musik-Generierung |
 | `youtube-content` | `npx skills add alpha1visionai-stack/claude-skills@youtube-content -g -y` | YouTube-Content-Strategie und -Analyse |
 | `powerpoint` | `npx skills add alpha1visionai-stack/claude-skills@powerpoint -g -y` | PowerPoint-Präsentationen erstellen und bearbeiten |
+| `gopro-exif-injector` | `npx skills add alpha1visionai-stack/claude-skills@gopro-exif-injector -g -y` | GoPro EXIF-Injektion, Sensor-Realismus & DxO Nik 7 Color Efex Filter ('Ai-gen-2') |
+| `luminar-preset-converter` | `npx skills add alpha1visionai-stack/claude-skills@luminar-preset-converter -g -y` | Lightroom & Luminar Presets (.xmp/.lmp) in Luminar Neo Format konvertieren |
 
 ### Textprüfung & Qualität
 | Skill | Install | Beschreibung |
