@@ -144,24 +144,36 @@ def get_exif_parameters(scene_type, model="HERO12 Black"):
 def apply_nik_color_efex_ai_gen_2(
     img, 
     glow_strength=0.25, 
+    smear_strength=0.0,
+    color_boost=1.25,
     vignette_strength=1.0, 
     grain_strength=1.0,
     use_center_vignette=False
 ):
     """
     Applies the DxO Nik 7 Color Efex 'AI-gen-2' filter pipeline matching the exact parameters:
-    1. Monday Morning: Dreamy glow / highlight bloom, brightness lift, +20% saturation.
+    1. Monday Morning: Verschmieren = 0 (keine Unschärfe/Diffusion), Farbe erhöht (+25% Farbsättigung), sanfter Tonalitätslift.
     2. Darken / Lighten Center (optional, default: disabled): Center +25% exposure boost, border -45% vignette falloff.
     3. Dual-Layer Film Grain (450/500 strength): Soft organic grain + crisp high-frequency micro-grain.
     """
     w, h = img.size
     
-    # 1. Monday Morning filter (Glow & Dreamy diffusion without saturation boost)
-    blur_rad = max(4, int(min(w, h) * 0.012))
-    blurred_glow = img.filter(ImageFilter.GaussianBlur(radius=blur_rad))
-    glow_enhancer = ImageEnhance.Brightness(blurred_glow)
-    bright_glow = glow_enhancer.enhance(1.35)
-    img_glow = Image.blend(img, bright_glow, alpha=glow_strength)
+    # 1. Monday Morning filter (Verschmieren = 0, Farbe/Sättigung erhöht)
+    if smear_strength > 0:
+        blur_rad = max(1, int(min(w, h) * 0.012 * smear_strength))
+        blurred_glow = img.filter(ImageFilter.GaussianBlur(radius=blur_rad))
+        glow_enhancer = ImageEnhance.Brightness(blurred_glow)
+        bright_glow = glow_enhancer.enhance(1.30)
+        img_glow = Image.blend(img, bright_glow, alpha=0.25 * smear_strength)
+    else:
+        # Verschmieren auf 0: Keine Weichzeichnung / Detailverlust, nur feiner Helligkeitslift
+        bright_enhancer = ImageEnhance.Brightness(img)
+        img_glow = bright_enhancer.enhance(1.0 + 0.06 * glow_strength)
+        
+    # Farbe / Farbsättigung erhöhen
+    if color_boost > 1.0:
+        color_enhancer = ImageEnhance.Color(img_glow)
+        img_glow = color_enhancer.enhance(color_boost)
     
     # 2. Darken / Lighten Center (optional, default off; Border: -0.45 = -45%, Center: +0.25 = +25%, CenterSize: 0.55)
     arr = np.array(img_glow, dtype=np.float32)
@@ -204,22 +216,23 @@ def apply_optical_sensor_simulation(
     black_lift=4.0, 
     highlight_rolloff=252.0, 
     s_strength=0.25,
-    diffraction_blur=0.10,
+    diffraction_blur=0.0,
     use_nik_preset=True,
     use_center_vignette=False,
-    vignette_strength=1.0
+    vignette_strength=1.0,
+    smear_strength=0.0,
+    color_boost=1.25
 ):
     """
     Simulates physical camera sensor & lens characteristics + Nik Color Efex processing:
-    1. Micro-diffraction blur: removes harsh 1-px AI rendering edges.
-    2. Lateral Chromatic Aberration (TCA): red/blue radial fringing increasing towards edges.
-    3. Sensor Tone Curve: S-curve, raised black levels (no 0-clipping), smooth highlight roll-off.
-    4. DxO Nik 7 Color Efex 'AI-gen-2' (Monday Morning glow, optional Center spotlight/vignette, Film grain).
-    5. CMOS Sensor Noise: Gaussian monochrome & subtle chroma noise, higher in shadows.
+    1. Lateral Chromatic Aberration (TCA): red/blue radial fringing increasing towards edges.
+    2. Sensor Tone Curve: S-curve, raised black levels (no 0-clipping), smooth highlight roll-off.
+    3. DxO Nik 7 Color Efex 'AI-gen-2' (Monday Morning: Verschmieren=0, Farbe erhöht; Film grain).
+    4. CMOS Sensor Noise: Gaussian monochrome & subtle chroma noise, higher in shadows.
     """
     w, h = img.size
     
-    # 1. Subtle optical diffraction softening
+    # 1. Subtle optical diffraction softening (if enabled)
     if diffraction_blur > 0:
         blurred = img.filter(ImageFilter.GaussianBlur(radius=0.5))
         img = Image.blend(img, blurred, alpha=diffraction_blur)
@@ -254,6 +267,8 @@ def apply_optical_sensor_simulation(
     if use_nik_preset:
         img_toned = apply_nik_color_efex_ai_gen_2(
             img_toned,
+            smear_strength=smear_strength,
+            color_boost=color_boost,
             use_center_vignette=use_center_vignette,
             vignette_strength=vignette_strength
         )
@@ -355,6 +370,8 @@ def process_file(
     use_nik_preset=True,
     use_center_vignette=False,
     vignette_strength=1.0,
+    smear_strength=0.0,
+    color_boost=1.25,
     ca_amount=0.0016,
     noise_amount=0.018,
     black_lift=4.0,
@@ -387,7 +404,9 @@ def process_file(
         if apply_effects:
             if use_nik_preset:
                 vignette_desc = " (+ Center-Vignette)" if (use_center_vignette and vignette_strength > 0) else ""
-                nik_info = f" + Nik 7 Color Efex 'Ai-gen-2'{vignette_desc}"
+                smear_desc = f", Verschmieren: {smear_strength}" if smear_strength > 0 else ""
+                color_desc = f", Farbe: +{int((color_boost-1.0)*100)}%" if color_boost != 1.0 else ""
+                nik_info = f" + Nik 7 Color Efex 'Ai-gen-2'{vignette_desc}{color_desc}{smear_desc}"
             else:
                 nik_info = ""
             print(f"   Applying Sensor Simulation (CA: {ca_amount:.4f}, Noise: {noise_amount*100:.1f}%, S-Curve{nik_info})...")
@@ -401,7 +420,9 @@ def process_file(
                     black_lift=black_lift,
                     use_nik_preset=use_nik_preset,
                     use_center_vignette=use_center_vignette,
-                    vignette_strength=vignette_strength
+                    vignette_strength=vignette_strength,
+                    smear_strength=smear_strength,
+                    color_boost=color_boost
                 )
                 processed_img.save(image_path, quality=jpeg_quality, subsampling=0)
                 
@@ -435,6 +456,10 @@ def main():
                         help="GoPro camera model (default: HERO12 Black).")
     parser.add_argument("--no-effects", action="store_true", help="Skip optical & sensor noise simulation (EXIF only).")
     parser.add_argument("--no-nik", action="store_true", help="Skip Nik 7 Color Efex 'Ai-gen-2' filter processing.")
+    parser.add_argument("--smear", type=float, default=0.0,
+                        help="Monday Morning Verschmieren/Smear diffusion strength (default: 0.0 = disabled).")
+    parser.add_argument("--color", "--color-boost", "--saturation", type=float, default=1.25,
+                        help="Monday Morning Farbe/Saturation multiplier (default: 1.25 = +25 percent).")
     parser.add_argument("--center-vignette", "--vignette", action="store_true",
                         help="Enable Darken / Lighten Center (+25 percent center boost & edge vignette falloff). Default: disabled.")
     parser.add_argument("--vignette-strength", type=float, default=1.0,
@@ -462,6 +487,8 @@ def main():
     use_nik = not args.no_nik
     use_center_vignette = args.center_vignette and (args.vignette_strength > 0)
     vignette_strength = args.vignette_strength if use_center_vignette else 0.0
+    smear_strength = max(0.0, args.smear)
+    color_boost = max(0.0, args.color)
     target = os.path.abspath(args.target)
     
     processed_files = []
@@ -481,6 +508,8 @@ def main():
                 use_nik_preset=use_nik,
                 use_center_vignette=use_center_vignette,
                 vignette_strength=vignette_strength,
+                smear_strength=smear_strength,
+                color_boost=color_boost,
                 ca_amount=args.ca,
                 noise_amount=args.noise,
                 black_lift=args.black_lift,
@@ -500,6 +529,8 @@ def main():
             use_nik_preset=use_nik,
             use_center_vignette=use_center_vignette,
             vignette_strength=vignette_strength,
+            smear_strength=smear_strength,
+            color_boost=color_boost,
             ca_amount=args.ca,
             noise_amount=args.noise,
             black_lift=args.black_lift,

@@ -15,7 +15,7 @@ Dieses Tool kombiniert technisch akkurate GoPro EXIF-Metadaten mit physikalische
 ## Enthaltene Bildverarbeitungs- & Filter-Pipeline
 
 1. **DxO Nik 7 Color Efex `Ai-gen-2` Filterkette**:
-   - **Monday Morning**: Sanfter atmosphärischer Diffusions-Glow und weiche Lichter mit natürlicher Farbwiedergabe (ohne Sättigungs-Verstärkung).
+   - **Monday Morning**: *Verschmieren auf 0* (volle Detailschärfe ohne künstliche Weichzeichnung/Diffusion), *Farbe erhöht* (+25% Farbsättigung für lebendige Farben) und feiner Helligkeitslift.
    - **Dual-Layer Film Grain**: Kombination aus weichem Korn und hochfrequentem Mikro-Korn mit Schatten- & Spitzlichterschutz.
    - **Darken / Lighten Center (optional, Standard: aus)**: Subtile Mitten-Aufhellung (+25%) bei fließender Rand-Vignettierung (kann via `--center-vignette` aktiviert und via `--vignette-strength <wert>` skaliert werden).
 2. **Optische Sensor-Simulation**:
