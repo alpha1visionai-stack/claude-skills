@@ -2,6 +2,7 @@
 name: gopro-exif-injector
 description: >
   Injiziert realistische GoPro EXIF-Metadaten (HERO11/HERO12 Black, 2.7mm f/2.5 Linse, 15mm 35mm-Äquivalent), simuliert physikalische Kamera- & Sensor-Charakteristiken (Chromatische Aberration, S-Gradationskurve, RAW/CMOS-Sensorrauschen) und wendet DxO Nik 7 Color Efex Filter ("Ai-gen-2": Monday Morning Glow, Dual Film Grain, optional Darken/Lighten Center Vignette) an.
+  Erzeugt automatisch versionierte Ausgabedateien (_v1, _v2, etc.) zum Schutz der Originale.
   Berücksichtigt automatisch oder manuell Tag- und Nachtszenen (ISO 100-3200, Verschlusszeit 1/30 bis 1/2000s, Program AE, GoPro Firmware).
   Verwenden, wenn der Benutzer sagt: "Füge GoPro EXIF Daten ein", "Schreibe realistische Metadaten in die Bilder", "GoPro Exif injecten", "Wende Nik 7 Color Efex Ai-gen-2 an", "Chromatische Aberration und Rauschen hinzufügen" oder ähnliches.
 ---
@@ -9,6 +10,8 @@ description: >
 # GoPro EXIF, Sensor Realism & DxO Nik 7 Color Efex Skill
 
 Dieses Tool kombiniert technisch akkurate GoPro EXIF-Metadaten mit physikalischer Sensor- und Optik-Simulation sowie dem **DxO Nik 7 Color Efex Preset `AI-gen-2`**, um KI-generierten Bildern die charakteristische Signatur echter Aufnahmen zu verleihen.
+
+> 💾 **Auto-Versionierung:** Jeder Durchlauf erzeugt standardmäßig eine neue versionierte Datei (`dateiname_v1.jpg`, `dateiname_v2.jpg` etc.). Das Original bleibt unverändert.
 
 ---
 
@@ -56,7 +59,7 @@ Dieses Tool kombiniert technisch akkurate GoPro EXIF-Metadaten mit physikalische
 
 ## CLI-Befehle
 
-### 1. Standard (Glow + Grain + Sensorrauschen + CA + S-Kurve + EXIF, ohne Vignette):
+### 1. Standard (Erzeugt automatisch `_v1`, `_v2` etc.):
 ```bash
 python skills/gopro-exif-injector/inject_gopro_exif.py "<PFAD_ZUM_ORDNER_ODER_BILD>"
 ```
@@ -67,12 +70,17 @@ python skills/gopro-exif-injector/inject_gopro_exif.py "<PFAD_ZUM_ORDNER_ODER_BI
 python skills/gopro-exif-injector/inject_gopro_exif.py "<PFAD>" --center-vignette
 ```
 
-### 3. Bilder in der DxO Nik 7 Color Efex Desktop-App öffnen:
+### 3. Ohne Versionierung (Überschreibt Originaldatei direkt in-place):
+```bash
+python skills/gopro-exif-injector/inject_gopro_exif.py "<PFAD>" --no-version
+```
+
+### 4. Bilder in der DxO Nik 7 Color Efex Desktop-App öffnen:
 ```bash
 python skills/gopro-exif-injector/inject_gopro_exif.py "<PFAD>" --open-nik
 ```
 
-### 4. Nur EXIF ohne Filter/Effekte:
+### 5. Nur EXIF ohne Filter/Effekte:
 ```bash
 python skills/gopro-exif-injector/inject_gopro_exif.py "<PFAD>" --no-effects
 ```

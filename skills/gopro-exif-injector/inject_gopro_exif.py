@@ -361,6 +361,46 @@ def inject_exif_with_piexif(image_path, params, timestamp):
     exif_bytes = piexif.dump(exif_dict)
     piexif.insert(exif_bytes, image_path)
 
+def get_versioned_filename(file_path):
+    """Generates a new filepath with an incremented version number (_v1, _v2, etc.)."""
+    dirname, basename = os.path.split(file_path)
+    name, ext = os.path.splitext(basename)
+    
+    m = re.match(r'^(.*?)(?:_v(\d+))$', name)
+    if m:
+        base_root = m.group(1)
+        current_v = int(m.group(2))
+        start_v = current_v + 1
+    else:
+        base_root = name
+        start_v = 1
+        
+    v = start_v
+    while True:
+        candidate_name = f"{base_root}_v{v}{ext}"
+        candidate_path = os.path.join(dirname, candidate_name)
+        if not os.path.exists(candidate_path):
+            return candidate_path
+        v += 1
+
+def filter_input_files(file_paths):
+    """
+    When processing a batch of files in a directory, avoids redundant processing
+    of generated _v<N> files if the unversioned base file exists in the directory.
+    """
+    basenames = {os.path.basename(p): p for p in file_paths}
+    selected = []
+    for p in file_paths:
+        base = os.path.basename(p)
+        name, ext = os.path.splitext(base)
+        m = re.match(r'^(.*?)(?:_v\d+)$', name)
+        if m:
+            base_original = f"{m.group(1)}{ext}"
+            if base_original in basenames:
+                continue
+        selected.append(p)
+    return selected
+
 def process_file(
     image_path, 
     exiftool_bin, 
@@ -376,13 +416,16 @@ def process_file(
     noise_amount=0.018,
     black_lift=4.0,
     backup=False,
-    jpeg_quality=97
+    jpeg_quality=97,
+    versioned=True
 ):
     """Processes a single image file with optical simulation, Nik Color Efex filter, and EXIF injection."""
     if not os.path.exists(image_path):
         print(f"Error: File '{image_path}' not found.")
-        return False
+        return None
         
+    target_path = get_versioned_filename(image_path) if versioned else image_path
+    
     if scene_override:
         scene = scene_override
         lum = 0.0
@@ -392,7 +435,10 @@ def process_file(
     params = get_exif_parameters(scene, model=model)
     timestamp = parse_date_from_filename(image_path, image_path)
     
-    print(f"-> Processing: {os.path.basename(image_path)}")
+    in_name = os.path.basename(image_path)
+    out_name = os.path.basename(target_path)
+    target_info = f" -> {out_name}" if versioned else ""
+    print(f"-> Processing: {in_name}{target_info}")
     print(f"   Scene: {scene} (Mean Lum: {lum:.1f})")
     print(f"   Camera: {params['Make']} {params['Model']}")
     print(f"   Lens: {params['FocalLength']} (35mm: {params['FocalLengthIn35mmFormat']}), f/{params['FNumber']}")
@@ -424,19 +470,22 @@ def process_file(
                     smear_strength=smear_strength,
                     color_boost=color_boost
                 )
-                processed_img.save(image_path, quality=jpeg_quality, subsampling=0)
+                processed_img.save(target_path, quality=jpeg_quality, subsampling=0)
+        elif versioned:
+            import shutil
+            shutil.copy2(image_path, target_path)
                 
         # Step 2: EXIF Metadata Injection
         if exiftool_bin:
-            inject_exif_with_exiftool(exiftool_bin, image_path, params, timestamp, backup=backup)
+            inject_exif_with_exiftool(exiftool_bin, target_path, params, timestamp, backup=backup)
         else:
-            inject_exif_with_piexif(image_path, params, timestamp)
+            inject_exif_with_piexif(target_path, params, timestamp)
             
-        print("   Status: SUCCESS\n")
-        return True
+        print(f"   Status: SUCCESS -> Saved as: {out_name}\n")
+        return target_path
     except Exception as e:
         print(f"   Status: FAILED - {e}\n")
-        return False
+        return None
 
 def open_in_nik_color_efex(image_paths):
     """Opens image files in DxO Nik 7 Color Efex standalone app."""
@@ -448,7 +497,7 @@ def open_in_nik_color_efex(image_paths):
         subprocess.Popen([NIK_EXE_PATH, p])
 
 def main():
-    parser = argparse.ArgumentParser(description="Inject realistic GoPro EXIF metadata, optical sensor simulation & DxO Nik 7 Color Efex 'Ai-gen-2' filter.")
+    parser = argparse.ArgumentParser(description="Inject realistic GoPro EXIF metadata, optical sensor simulation & DxO Nik 7 Color Efex 'Ai-gen-2' filter with auto-versioning.")
     parser.add_argument("target", help="Target image file or directory.")
     parser.add_argument("--scene", choices=["auto", "night", "night_dark", "day", "day_sunny", "day_cloudy"], default="auto",
                         help="Override automatic scene detection (default: auto).")
@@ -464,6 +513,8 @@ def main():
                         help="Enable Darken / Lighten Center (+25 percent center boost & edge vignette falloff). Default: disabled.")
     parser.add_argument("--vignette-strength", type=float, default=1.0,
                         help="Darken / Lighten Center strength multiplier when enabled (default: 1.0).")
+    parser.add_argument("--no-version", "--overwrite", action="store_true",
+                        help="Overwrite existing file in-place instead of creating a new versioned file (_v1, _v2, etc.).")
     parser.add_argument("--open-nik", action="store_true", help="Open processed image(s) in DxO Nik 7 Color Efex GUI.")
     parser.add_argument("--ca", type=float, default=0.0016, help="Chromatic aberration strength (default: 0.0016).")
     parser.add_argument("--noise", type=float, default=0.018, help="Base sensor noise ratio (default: 0.018 = 1.8 percent).")
@@ -489,17 +540,19 @@ def main():
     vignette_strength = args.vignette_strength if use_center_vignette else 0.0
     smear_strength = max(0.0, args.smear)
     color_boost = max(0.0, args.color)
+    versioned = not args.no_version
     target = os.path.abspath(args.target)
     
     processed_files = []
     if os.path.isdir(target):
-        files = [os.path.join(target, f) for f in os.listdir(target) if f.lower().endswith(('.jpg', '.jpeg'))]
-        if not files:
+        raw_files = [os.path.join(target, f) for f in os.listdir(target) if f.lower().endswith(('.jpg', '.jpeg'))]
+        if not raw_files:
             print(f"No JPEG images found in {target}")
             return
-        print(f"Found {len(files)} image(s) in '{target}'. Processing...\n")
+        files = filter_input_files(raw_files)
+        print(f"Found {len(files)} image(s) in '{target}'. Processing (Auto-Versioning: {'ON' if versioned else 'OFF'})...\n")
         for f in files:
-            ok = process_file(
+            out_file = process_file(
                 f, 
                 exiftool_bin, 
                 scene_override, 
@@ -514,13 +567,14 @@ def main():
                 noise_amount=args.noise,
                 black_lift=args.black_lift,
                 backup=args.backup,
-                jpeg_quality=args.quality
+                jpeg_quality=args.quality,
+                versioned=versioned
             )
-            if ok:
-                processed_files.append(f)
-        print(f"Finished: {len(processed_files)}/{len(files)} images updated successfully.")
+            if out_file:
+                processed_files.append(out_file)
+        print(f"Finished: {len(processed_files)}/{len(files)} images created successfully.")
     elif os.path.isfile(target):
-        ok = process_file(
+        out_file = process_file(
             target, 
             exiftool_bin, 
             scene_override, 
@@ -535,10 +589,11 @@ def main():
             noise_amount=args.noise,
             black_lift=args.black_lift,
             backup=args.backup,
-            jpeg_quality=args.quality
+            jpeg_quality=args.quality,
+            versioned=versioned
         )
-        if ok:
-            processed_files.append(target)
+        if out_file:
+            processed_files.append(out_file)
     else:
         print(f"Target '{args.target}' does not exist.")
 
