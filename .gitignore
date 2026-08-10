@@ -1,1 +1,4 @@
 skills/agy-installer/assets/*.exe
+
+__pycache__/
+*.pyc
