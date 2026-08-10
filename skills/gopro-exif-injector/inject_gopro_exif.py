@@ -541,7 +541,14 @@ def main():
     vignette_strength = args.vignette_strength if use_center_vignette else 0.0
     smear_val = args.smear / 100.0 if args.smear > 1.0 else args.smear
     smear_strength = max(0.0, smear_val)
-    color_boost = max(0.0, args.color)
+    if args.color == 0.0:
+        color_boost = 1.0
+    elif args.color > 1.5:
+        color_boost = 1.0 + (args.color / 100.0)
+    elif args.color > 0.0 and args.color < 1.0:
+        color_boost = 1.0 + args.color
+    else:
+        color_boost = max(0.0, args.color)
     versioned = not args.no_version
     target = os.path.abspath(args.target)
     
