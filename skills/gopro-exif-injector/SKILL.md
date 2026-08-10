@@ -1,7 +1,7 @@
 ---
 name: gopro-exif-injector
 description: >
-  Injiziert realistische GoPro EXIF-Metadaten (HERO11/HERO12 Black, 2.7mm f/2.5 Linse, 15mm 35mm-Äquivalent), simuliert physikalische Kamera- & Sensor-Charakteristiken (Chromatische Aberration, S-Gradationskurve, RAW/CMOS-Sensorrauschen) und wendet DxO Nik 7 Color Efex Filter ("Ai-gen-2": Monday Morning Glow, Darken/Lighten Center Vignette, Dual Film Grain) an.
+  Injiziert realistische GoPro EXIF-Metadaten (HERO11/HERO12 Black, 2.7mm f/2.5 Linse, 15mm 35mm-Äquivalent), simuliert physikalische Kamera- & Sensor-Charakteristiken (Chromatische Aberration, S-Gradationskurve, RAW/CMOS-Sensorrauschen) und wendet DxO Nik 7 Color Efex Filter ("Ai-gen-2": Monday Morning Glow, optionales Darken/Lighten Center Vignette, Dual Film Grain) an.
   Berücksichtigt automatisch oder manuell Tag- und Nachtszenen (ISO 100-3200, Verschlusszeit 1/30 bis 1/2000s, Program AE, GoPro Firmware).
   Verwenden, wenn der Benutzer sagt: "Füge GoPro EXIF Daten ein", "Schreibe realistische Metadaten in die Bilder", "GoPro Exif injecten", "Wende Nik 7 Color Efex Ai-gen-2 an", "Chromatische Aberration und Rauschen hinzufügen" oder ähnliches.
 ---
@@ -16,7 +16,7 @@ Dieses Tool kombiniert technisch akkurate GoPro EXIF-Metadaten mit physikalische
 
 1. **DxO Nik 7 Color Efex `Ai-gen-2` Filterkette**:
    - **Monday Morning**: Sanfter atmosphärischer Diffusions-Glow und weiche Lichter mit natürlicher Farbwiedergabe (ohne Sättigungs-Verstärkung).
-   - **Darken / Lighten Center**: Subtile Mitten-Aufhellung bei fließender Rand-Vignettierung (fokussiert den Blick auf das Motiv).
+   - **Darken / Lighten Center (optional)**: Subtile Mitten-Aufhellung (+25%) bei fließender Rand-Vignettierung (kann via `--no-center-vignette` deaktiviert oder via `--vignette-strength <wert>` skaliert werden).
    - **Dual-Layer Film Grain**: Kombination aus weichem Korn und hochfrequentem Mikro-Korn mit Schatten- & Spitzlichterschutz.
 2. **Optische Sensor-Simulation**:
    - **Chromatische Aberration (Transversale CA / TCA)**: Radiale Farbverschiebungen (Rot outward / Blau inward), die zu den Bildrändern hin zunehmen (typisch für 15mm Superweitwinkel).
@@ -49,6 +49,7 @@ Dieses Tool kombiniert technisch akkurate GoPro EXIF-Metadaten mit physikalische
 - *"Wende DxO Nik 7 Color Efex mit dem Filter Ai-gen-2 auf die Bilder an."*
 - *"Füge realistische GoPro EXIF-Daten, Sensor-Rauschen und Nik Color Efex Effekte ein."*
 - *"Simuliere Chromatische Aberration, S-Kurve und das Ai-gen-2 Preset."*
+- *"Führe den GoPro-Skill ohne Center-Vignette aus."*
 - *"Öffne die Bilder in Nik 7 Color Efex."*
 
 ---
@@ -59,14 +60,19 @@ Dieses Tool kombiniert technisch akkurate GoPro EXIF-Metadaten mit physikalische
 ```bash
 python skills/gopro-exif-injector/inject_gopro_exif.py "<PFAD_ZUM_ORDNER_ODER_BILD>"
 ```
-*(Oder mit absolutem Pfad: `python "C:\Users\walte\.gemini\config\skills\gopro-exif-injector\inject_gopro_exif.py" "<PFAD>"` bzw. `~/.claude/skills/gopro-exif-injector/inject_gopro_exif.py`)*
+*(Oder mit absolutem Pfad: `python "C:\Users\walte\.gemini\config\skills\gopro-exif-injector\inject_gopro_exif.py" "<PFAD>"`)*
 
-### 2. Bilder in der DxO Nik 7 Color Efex Desktop-App öffnen:
+### 2. Ohne Center-Boost / Rand-Vignettierung (Darken/Lighten Center deaktiviert):
+```bash
+python skills/gopro-exif-injector/inject_gopro_exif.py "<PFAD>" --no-center-vignette
+```
+
+### 3. Bilder in der DxO Nik 7 Color Efex Desktop-App öffnen:
 ```bash
 python skills/gopro-exif-injector/inject_gopro_exif.py "<PFAD>" --open-nik
 ```
 
-### 3. Nur EXIF ohne Filter/Effekte:
+### 4. Nur EXIF ohne Filter/Effekte:
 ```bash
 python skills/gopro-exif-injector/inject_gopro_exif.py "<PFAD>" --no-effects
 ```

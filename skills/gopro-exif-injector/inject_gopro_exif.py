@@ -141,11 +141,17 @@ def get_exif_parameters(scene_type, model="HERO12 Black"):
         
     return params
 
-def apply_nik_color_efex_ai_gen_2(img, glow_strength=0.25, vignette_strength=1.0, grain_strength=1.0):
+def apply_nik_color_efex_ai_gen_2(
+    img, 
+    glow_strength=0.25, 
+    vignette_strength=1.0, 
+    grain_strength=1.0,
+    use_center_vignette=True
+):
     """
     Applies the full-strength DxO Nik 7 Color Efex 'AI-gen-2' filter pipeline matching the exact parameters:
     1. Monday Morning: Dreamy glow / highlight bloom, brightness lift, +20% saturation.
-    2. Darken / Lighten Center: Center +25% exposure boost, border -45% vignette falloff (centerSize: 0.55).
+    2. Darken / Lighten Center (optional): Center +25% exposure boost, border -45% vignette falloff (centerSize: 0.55).
     3. Dual-Layer Film Grain (450/500 strength): Soft organic grain + crisp high-frequency micro-grain.
     """
     w, h = img.size
@@ -157,21 +163,24 @@ def apply_nik_color_efex_ai_gen_2(img, glow_strength=0.25, vignette_strength=1.0
     bright_glow = glow_enhancer.enhance(1.35)
     img_glow = Image.blend(img, bright_glow, alpha=glow_strength)
     
-    # 2. Darken / Lighten Center (Border: -0.5 = -50%, Center: +0.25 = +25%, CenterSize: 0.55)
+    # 2. Darken / Lighten Center (optional, Border: -0.45 = -45%, Center: +0.25 = +25%, CenterSize: 0.55)
     arr = np.array(img_glow, dtype=np.float32)
-    y_coords, x_coords = np.mgrid[0:h, 0:w]
-    cx, cy = w / 2.0, h / 2.0
-    r_norm = np.sqrt(((x_coords - cx) / (w / 2.0))**2 + ((y_coords - cy) / (h / 2.0))**2)
-    
-    center_size = 0.55
-    vignette_t = np.clip((r_norm - center_size) / (1.35 - center_size), 0.0, 1.0)
-    vignette_curve = 3.0 * (vignette_t ** 2) - 2.0 * (vignette_t ** 3)
-    
-    # Center gain +25%, Border darkening -45% (scaled by vignette_strength)
-    center_boost = 0.25 * vignette_strength
-    border_darken = 0.45 * vignette_strength
-    vignette_gain = (1.0 + center_boost * (1.0 - vignette_curve)) * (1.0 - border_darken * vignette_curve)
-    arr_vignetted = arr * vignette_gain[:, :, np.newaxis]
+    if use_center_vignette and vignette_strength > 0:
+        y_coords, x_coords = np.mgrid[0:h, 0:w]
+        cx, cy = w / 2.0, h / 2.0
+        r_norm = np.sqrt(((x_coords - cx) / (w / 2.0))**2 + ((y_coords - cy) / (h / 2.0))**2)
+        
+        center_size = 0.55
+        vignette_t = np.clip((r_norm - center_size) / (1.35 - center_size), 0.0, 1.0)
+        vignette_curve = 3.0 * (vignette_t ** 2) - 2.0 * (vignette_t ** 3)
+        
+        # Center gain +25%, Border darkening -45% (scaled by vignette_strength)
+        center_boost = 0.25 * vignette_strength
+        border_darken = 0.45 * vignette_strength
+        vignette_gain = (1.0 + center_boost * (1.0 - vignette_curve)) * (1.0 - border_darken * vignette_curve)
+        arr_vignetted = arr * vignette_gain[:, :, np.newaxis]
+    else:
+        arr_vignetted = arr
     
     # 3. Dual-Layer Film Grain (Nik strength: 450/500)
     soft_noise = np.random.normal(0, 10.0 * grain_strength, (h, w, 1)).astype(np.float32)
@@ -196,7 +205,9 @@ def apply_optical_sensor_simulation(
     highlight_rolloff=252.0, 
     s_strength=0.25,
     diffraction_blur=0.10,
-    use_nik_preset=True
+    use_nik_preset=True,
+    use_center_vignette=True,
+    vignette_strength=1.0
 ):
     """
     Simulates physical camera sensor & lens characteristics + Nik Color Efex processing:
@@ -241,7 +252,11 @@ def apply_optical_sensor_simulation(
     
     # 4. DxO Nik 7 Color Efex 'AI-gen-2' processing
     if use_nik_preset:
-        img_toned = apply_nik_color_efex_ai_gen_2(img_toned)
+        img_toned = apply_nik_color_efex_ai_gen_2(
+            img_toned,
+            use_center_vignette=use_center_vignette,
+            vignette_strength=vignette_strength
+        )
     
     # 5. CMOS Sensor Noise Injection
     arr_toned = np.array(img_toned, dtype=np.float32)
@@ -338,6 +353,8 @@ def process_file(
     model="HERO12 Black", 
     apply_effects=True,
     use_nik_preset=True,
+    use_center_vignette=True,
+    vignette_strength=1.0,
     ca_amount=0.0016,
     noise_amount=0.018,
     black_lift=4.0,
@@ -368,7 +385,11 @@ def process_file(
     try:
         # Step 1: Optical, Sensor & Nik 7 Color Efex AI-gen-2 simulation
         if apply_effects:
-            nik_info = " + Nik 7 Color Efex 'Ai-gen-2'" if use_nik_preset else ""
+            if use_nik_preset:
+                vignette_desc = "" if (use_center_vignette and vignette_strength > 0) else " (ohne Center-Vignette)"
+                nik_info = f" + Nik 7 Color Efex 'Ai-gen-2'{vignette_desc}"
+            else:
+                nik_info = ""
             print(f"   Applying Sensor Simulation (CA: {ca_amount:.4f}, Noise: {noise_amount*100:.1f}%, S-Curve{nik_info})...")
             with Image.open(image_path) as img:
                 img_rgb = img.convert('RGB')
@@ -378,7 +399,9 @@ def process_file(
                     ca_amount=ca_amount,
                     base_noise=noise_amount,
                     black_lift=black_lift,
-                    use_nik_preset=use_nik_preset
+                    use_nik_preset=use_nik_preset,
+                    use_center_vignette=use_center_vignette,
+                    vignette_strength=vignette_strength
                 )
                 processed_img.save(image_path, quality=jpeg_quality, subsampling=0)
                 
@@ -412,9 +435,13 @@ def main():
                         help="GoPro camera model (default: HERO12 Black).")
     parser.add_argument("--no-effects", action="store_true", help="Skip optical & sensor noise simulation (EXIF only).")
     parser.add_argument("--no-nik", action="store_true", help="Skip Nik 7 Color Efex 'Ai-gen-2' filter processing.")
+    parser.add_argument("--no-center-vignette", "--no-vignette", action="store_true",
+                        help="Skip Darken / Lighten Center (+25 percent center boost & edge vignette falloff).")
+    parser.add_argument("--vignette-strength", type=float, default=1.0,
+                        help="Darken / Lighten Center strength multiplier (default: 1.0, 0.0 = disabled).")
     parser.add_argument("--open-nik", action="store_true", help="Open processed image(s) in DxO Nik 7 Color Efex GUI.")
     parser.add_argument("--ca", type=float, default=0.0016, help="Chromatic aberration strength (default: 0.0016).")
-    parser.add_argument("--noise", type=float, default=0.018, help="Base sensor noise percentage (default: 0.018 = 1.8%).")
+    parser.add_argument("--noise", type=float, default=0.018, help="Base sensor noise ratio (default: 0.018 = 1.8 percent).")
     parser.add_argument("--black-lift", type=float, default=4.0, help="Black level lift in 8-bit scale (default: 4.0).")
     parser.add_argument("--quality", type=int, default=97, help="JPEG save quality (default: 97).")
     parser.add_argument("--backup", action="store_true", help="Keep original backup file when using ExifTool.")
@@ -433,6 +460,8 @@ def main():
         
     apply_effects = not args.no_effects
     use_nik = not args.no_nik
+    use_center_vignette = not args.no_center_vignette and (args.vignette_strength > 0)
+    vignette_strength = args.vignette_strength if use_center_vignette else 0.0
     target = os.path.abspath(args.target)
     
     processed_files = []
@@ -450,6 +479,8 @@ def main():
                 args.model, 
                 apply_effects=apply_effects,
                 use_nik_preset=use_nik,
+                use_center_vignette=use_center_vignette,
+                vignette_strength=vignette_strength,
                 ca_amount=args.ca,
                 noise_amount=args.noise,
                 black_lift=args.black_lift,
@@ -467,6 +498,8 @@ def main():
             args.model, 
             apply_effects=apply_effects,
             use_nik_preset=use_nik,
+            use_center_vignette=use_center_vignette,
+            vignette_strength=vignette_strength,
             ca_amount=args.ca,
             noise_amount=args.noise,
             black_lift=args.black_lift,
