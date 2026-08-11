@@ -11,6 +11,7 @@ from PIL import Image, ImageFilter, ImageEnhance
 
 NIK_DB_PATH = r"C:\Users\walte\AppData\Local\DxO\Nik Collection 7\data.db"
 NIK_EXE_PATH = r"C:\Program Files\DxO\Nik Collection 7\bin\Nik 7 Color Efex.exe"
+SILVER_EFEX_EXE_PATH = r"C:\Program Files\DxO\Nik Collection 7\bin\Nik 7 Silver Efex.exe"
 
 def find_exiftool():
     """Finds exiftool executable path on the system."""
@@ -209,6 +210,62 @@ def apply_nik_color_efex_ai_gen_2(
     arr_final = np.clip(np.round(arr_final), 0, 255).astype(np.uint8)
     return Image.fromarray(arr_final)
 
+def apply_silver_efex_fine_art(
+    img,
+    global_contrast=18.58,   # +18.58% in Silver Efex
+    soft_contrast=-31.71,    # -31.71% in Silver Efex
+    fine_structure=44.51,    # +44.51% fine micro-details
+    med_structure=-17.07,    # -17.07% smooth midtones
+    grain_strength=1.0       # Grain strength 500
+):
+    """
+    Simulates DxO Silver Efex Pro '019 - Fine Art Process' (019-Fine-art-Prozess):
+    - Neutral B&W conversion
+    - Global Contrast (+18.6%) & Soft Contrast (-31.7%) for rich blacks and smooth tonal transitions
+    - Multi-scale structure: High Fine Structure (+44.5%) + Soft Med Structure (-17.1%)
+    - Classic 500-strength Silver Halide Film Grain
+    """
+    img_gray = img.convert('L')
+    w, h = img_gray.size
+    arr = np.array(img_gray, dtype=np.float32)
+
+    # 1. Multi-scale Structure Adjustment (Fine Structure +44.5% & Med Structure -17.1%)
+    fine_blur = np.array(img_gray.filter(ImageFilter.GaussianBlur(radius=1.2)), dtype=np.float32)
+    fine_detail = arr - fine_blur
+    
+    med_blur = np.array(img_gray.filter(ImageFilter.GaussianBlur(radius=8.0)), dtype=np.float32)
+    med_detail = fine_blur - med_blur
+
+    arr_structured = arr + (fine_structure / 100.0) * fine_detail * 1.5 + (med_structure / 100.0) * med_detail * 0.8
+    arr_structured = np.clip(arr_structured, 0.0, 255.0)
+
+    # 2. Global Contrast (+18.58%) & Soft Contrast (-31.71%)
+    u = arr_structured / 255.0
+    s_curve = 3.0 * (u ** 2) - 2.0 * (u ** 3)
+    contrast_factor = global_contrast / 100.0
+    soft_factor = abs(soft_contrast) / 100.0
+    
+    u_contrast = (1.0 - contrast_factor) * u + contrast_factor * s_curve
+    u_soft = 0.02 + 0.96 * u_contrast
+    u_final = (1.0 - 0.3 * soft_factor) * u_contrast + (0.3 * soft_factor) * u_soft
+    arr_toned = np.clip(u_final * 255.0, 0.0, 255.0)
+
+    # 3. Silver Halide Film Grain (Silver Efex 500 strength)
+    if grain_strength > 0:
+        lum_norm = np.clip(arr_toned / 255.0, 0.0, 1.0)
+        grain_mask = np.clip(np.sin(lum_norm * np.pi) ** 0.65, 0.25, 1.0)
+        
+        grain_soft = np.random.normal(0, 7.5 * grain_strength, (h, w)).astype(np.float32)
+        grain_sharp = np.random.normal(0, 6.0 * grain_strength, (h, w)).astype(np.float32)
+        total_grain = (grain_soft + grain_sharp) * grain_mask
+        
+        arr_final = np.clip(np.round(arr_toned + total_grain), 0, 255).astype(np.uint8)
+    else:
+        arr_final = np.clip(np.round(arr_toned), 0, 255).astype(np.uint8)
+
+    img_bw = Image.fromarray(arr_final).convert('RGB')
+    return img_bw
+
 def apply_optical_sensor_simulation(
     img, 
     scene_type='night',
@@ -362,8 +419,8 @@ def inject_exif_with_piexif(image_path, params, timestamp):
     exif_bytes = piexif.dump(exif_dict)
     piexif.insert(exif_bytes, image_path)
 
-def get_versioned_filename(file_path):
-    """Generates a new filepath with an incremented version number (_v1, _v2, etc.)."""
+def get_versioned_filename(file_path, suffix=""):
+    """Generates a new filepath with an incremented version number (_v1, _v2, etc.) and optional suffix."""
     dirname, basename = os.path.split(file_path)
     name, ext = os.path.splitext(basename)
     
@@ -378,7 +435,7 @@ def get_versioned_filename(file_path):
         
     v = start_v
     while True:
-        candidate_name = f"{base_root}_v{v}{ext}"
+        candidate_name = f"{base_root}_v{v}{suffix}{ext}"
         candidate_path = os.path.join(dirname, candidate_name)
         if not os.path.exists(candidate_path):
             return candidate_path
@@ -394,7 +451,7 @@ def filter_input_files(file_paths):
     for p in file_paths:
         base = os.path.basename(p)
         name, ext = os.path.splitext(base)
-        m = re.match(r'^(.*?)(?:_v\d+)$', name)
+        m = re.match(r'^(.*?)(?:_v\d+.*)$', name)
         if m:
             base_original = f"{m.group(1)}{ext}"
             if base_original in basenames:
@@ -418,12 +475,18 @@ def process_file(
     black_lift=4.0,
     backup=False,
     jpeg_quality=97,
-    versioned=True
+    versioned=True,
+    create_bw=False,
+    bw_only=False,
+    bw_suffix="_NIK"
 ):
-    """Processes a single image file with optical simulation, Nik Color Efex filter, and EXIF injection."""
+    """
+    Processes an image file with optical simulation, Nik Color Efex filter,
+    optional DxO Silver Efex '019 - Fine Art Process' B&W version, and EXIF injection.
+    """
     if not os.path.exists(image_path):
         print(f"Error: File '{image_path}' not found.")
-        return None
+        return []
         
     target_path = get_versioned_filename(image_path) if versioned else image_path
     
@@ -446,47 +509,73 @@ def process_file(
     print(f"   Exposure: ISO {params['ISO']}, {params['ExposureTime']}s, {params['ExposureProgram']}")
     print(f"   Timestamp: {timestamp}")
     
+    generated_files = []
+    
     try:
-        # Step 1: Optical, Sensor & Nik 7 Color Efex AI-gen-2 simulation
-        if apply_effects:
-            if use_nik_preset:
-                vignette_desc = " (+ Center-Vignette)" if (use_center_vignette and vignette_strength > 0) else ""
-                smear_desc = f", Verschmieren: {smear_strength}" if smear_strength > 0 else ""
-                color_desc = f", Farbe: +{int((color_boost-1.0)*100)}%" if color_boost != 1.0 else ""
-                nik_info = f" + Nik 7 Color Efex 'Ai-gen-2'{vignette_desc}{color_desc}{smear_desc}"
+        # Step 1: Process Color Version (unless bw_only is requested)
+        if not bw_only:
+            if apply_effects:
+                if use_nik_preset:
+                    vignette_desc = " (+ Center-Vignette)" if (use_center_vignette and vignette_strength > 0) else ""
+                    smear_desc = f", Verschmieren: {smear_strength}" if smear_strength > 0 else ""
+                    color_desc = f", Farbe: +{int((color_boost-1.0)*100)}%" if color_boost != 1.0 else ""
+                    nik_info = f" + Nik 7 Color Efex 'Ai-gen-2'{vignette_desc}{color_desc}{smear_desc}"
+                else:
+                    nik_info = ""
+                print(f"   Applying Color & Sensor Simulation (CA: {ca_amount:.4f}, Noise: {noise_amount*100:.1f}%, S-Curve{nik_info})...")
+                with Image.open(image_path) as img:
+                    img_rgb = img.convert('RGB')
+                    processed_img = apply_optical_sensor_simulation(
+                        img_rgb,
+                        scene_type=scene,
+                        ca_amount=ca_amount,
+                        base_noise=noise_amount,
+                        black_lift=black_lift,
+                        use_nik_preset=use_nik_preset,
+                        use_center_vignette=use_center_vignette,
+                        vignette_strength=vignette_strength,
+                        smear_strength=smear_strength,
+                        color_boost=color_boost
+                    )
+                    processed_img.save(target_path, quality=jpeg_quality, subsampling=0)
+            elif versioned:
+                import shutil
+                shutil.copy2(image_path, target_path)
+                    
+            # EXIF Metadata Injection for Color Image
+            if exiftool_bin:
+                inject_exif_with_exiftool(exiftool_bin, target_path, params, timestamp, backup=backup)
             else:
-                nik_info = ""
-            print(f"   Applying Sensor Simulation (CA: {ca_amount:.4f}, Noise: {noise_amount*100:.1f}%, S-Curve{nik_info})...")
+                inject_exif_with_piexif(target_path, params, timestamp)
+                
+            print(f"   Status: SUCCESS -> Color: {out_name}")
+            generated_files.append(target_path)
+
+        # Step 2: Process Additional S/W Fine-Art Version (DxO Silver Efex '019 - Fine Art Process')
+        if create_bw or bw_only:
+            bw_target_path = get_versioned_filename(image_path, suffix=bw_suffix) if versioned else f"{os.path.splitext(image_path)[0]}{bw_suffix}{os.path.splitext(image_path)[1]}"
+            bw_name = os.path.basename(bw_target_path)
+            print(f"   Applying DxO Silver Efex Pro '019 - Fine Art Process' (+18.6% Contrast, -31.7% Soft, +44.5% Fine Structure, Silver Halide Grain 500)...")
+            
             with Image.open(image_path) as img:
                 img_rgb = img.convert('RGB')
-                processed_img = apply_optical_sensor_simulation(
-                    img_rgb,
-                    scene_type=scene,
-                    ca_amount=ca_amount,
-                    base_noise=noise_amount,
-                    black_lift=black_lift,
-                    use_nik_preset=use_nik_preset,
-                    use_center_vignette=use_center_vignette,
-                    vignette_strength=vignette_strength,
-                    smear_strength=smear_strength,
-                    color_boost=color_boost
-                )
-                processed_img.save(target_path, quality=jpeg_quality, subsampling=0)
-        elif versioned:
-            import shutil
-            shutil.copy2(image_path, target_path)
+                bw_img = apply_silver_efex_fine_art(img_rgb)
+                bw_img.save(bw_target_path, quality=jpeg_quality, subsampling=0)
                 
-        # Step 2: EXIF Metadata Injection
-        if exiftool_bin:
-            inject_exif_with_exiftool(exiftool_bin, target_path, params, timestamp, backup=backup)
-        else:
-            inject_exif_with_piexif(target_path, params, timestamp)
+            # EXIF Metadata Injection for S/W Image
+            if exiftool_bin:
+                inject_exif_with_exiftool(exiftool_bin, bw_target_path, params, timestamp, backup=backup)
+            else:
+                inject_exif_with_piexif(bw_target_path, params, timestamp)
+                
+            print(f"   Status: SUCCESS -> S/W Fine Art: {bw_name}")
+            generated_files.append(bw_target_path)
             
-        print(f"   Status: SUCCESS -> Saved as: {out_name}\n")
-        return target_path
+        print()
+        return generated_files
     except Exception as e:
         print(f"   Status: FAILED - {e}\n")
-        return None
+        return []
 
 def open_in_nik_color_efex(image_paths):
     """Opens image files in DxO Nik 7 Color Efex standalone app."""
@@ -498,7 +587,7 @@ def open_in_nik_color_efex(image_paths):
         subprocess.Popen([NIK_EXE_PATH, p])
 
 def main():
-    parser = argparse.ArgumentParser(description="Inject realistic GoPro EXIF metadata, optical sensor simulation & DxO Nik 7 Color Efex 'Ai-gen-2' filter with auto-versioning.")
+    parser = argparse.ArgumentParser(description="Inject realistic GoPro EXIF metadata, optical sensor simulation, DxO Nik 7 Color Efex & DxO Silver Efex '019 - Fine Art Process' with auto-versioning.")
     parser.add_argument("target", help="Target image file or directory.")
     parser.add_argument("--scene", choices=["auto", "night", "night_dark", "day", "day_sunny", "day_cloudy"], default="auto",
                         help="Override automatic scene detection (default: auto).")
@@ -514,6 +603,12 @@ def main():
                         help="Enable Darken / Lighten Center (+25 percent center boost & edge vignette falloff). Default: disabled.")
     parser.add_argument("--vignette-strength", type=float, default=1.0,
                         help="Darken / Lighten Center strength multiplier when enabled (default: 1.0).")
+    parser.add_argument("--bw", "--silver-efex", "--fine-art", action="store_true",
+                        help="Zusätzlich eine S/W-Version mit DxO Silver Efex '019 - Fine Art Process' erstellen.")
+    parser.add_argument("--bw-only", action="store_true",
+                        help="Nur die S/W Fine Art Version erstellen (ohne Farbbild).")
+    parser.add_argument("--bw-suffix", default="_NIK",
+                        help="Suffix für die S/W-Version (Standard: '_NIK').")
     parser.add_argument("--no-version", "--overwrite", action="store_true",
                         help="Overwrite existing file in-place instead of creating a new versioned file (_v1, _v2, etc.).")
     parser.add_argument("--open-nik", action="store_true", help="Open processed image(s) in DxO Nik 7 Color Efex GUI.")
@@ -559,9 +654,9 @@ def main():
             print(f"No JPEG images found in {target}")
             return
         files = filter_input_files(raw_files)
-        print(f"Found {len(files)} image(s) in '{target}'. Processing (Auto-Versioning: {'ON' if versioned else 'OFF'})...\n")
+        print(f"Found {len(files)} image(s) in '{target}'. Processing (Auto-Versioning: {'ON' if versioned else 'OFF'}, B&W Fine Art: {'ON' if (args.bw or args.bw_only) else 'OFF'})...\n")
         for f in files:
-            out_file = process_file(
+            outs = process_file(
                 f, 
                 exiftool_bin, 
                 scene_override, 
@@ -577,13 +672,15 @@ def main():
                 black_lift=args.black_lift,
                 backup=args.backup,
                 jpeg_quality=args.quality,
-                versioned=versioned
+                versioned=versioned,
+                create_bw=args.bw,
+                bw_only=args.bw_only,
+                bw_suffix=args.bw_suffix
             )
-            if out_file:
-                processed_files.append(out_file)
-        print(f"Finished: {len(processed_files)}/{len(files)} images created successfully.")
+            processed_files.extend(outs)
+        print(f"Finished: {len(processed_files)} images created successfully.")
     elif os.path.isfile(target):
-        out_file = process_file(
+        outs = process_file(
             target, 
             exiftool_bin, 
             scene_override, 
@@ -599,10 +696,12 @@ def main():
             black_lift=args.black_lift,
             backup=args.backup,
             jpeg_quality=args.quality,
-            versioned=versioned
+            versioned=versioned,
+            create_bw=args.bw,
+            bw_only=args.bw_only,
+            bw_suffix=args.bw_suffix
         )
-        if out_file:
-            processed_files.append(out_file)
+        processed_files.extend(outs)
     else:
         print(f"Target '{args.target}' does not exist.")
 

@@ -224,7 +224,7 @@ npx skills add alpha1visionai-stack/claude-skills@brainstorming -g -y
 | `songwriting-and-ai-music` | `npx skills add alpha1visionai-stack/claude-skills@songwriting-and-ai-music -g -y` | Songwriting und KI-Musik-Generierung |
 | `youtube-content` | `npx skills add alpha1visionai-stack/claude-skills@youtube-content -g -y` | YouTube-Content-Strategie und -Analyse |
 | `powerpoint` | `npx skills add alpha1visionai-stack/claude-skills@powerpoint -g -y` | PowerPoint-Präsentationen erstellen und bearbeiten |
-| `gopro-exif-injector` | `npx skills add alpha1visionai-stack/claude-skills@gopro-exif-injector -g -y` | GoPro EXIF-Injektion, Sensor-Realismus & DxO Nik 7 Color Efex Filter ('Ai-gen-2') |
+| `gopro-exif-injector` | `npx skills add alpha1visionai-stack/claude-skills@gopro-exif-injector -g -y` | GoPro EXIF-Injektion, Sensor-Realismus, DxO Nik 7 Color Efex ('Ai-gen-2') & Silver Efex ('019 - Fine Art Process') |
 | `luminar-preset-converter` | `npx skills add alpha1visionai-stack/claude-skills@luminar-preset-converter -g -y` | Lightroom & Luminar Presets (.xmp/.lmp) in Luminar Neo Format konvertieren |
 | `instagram-publisher` | `npx skills add alpha1visionai-stack/claude-skills@instagram-publisher -g -y` | Automatisiertes Veröffentlichen von Bildern, Bildunterschriften und Hashtags auf Instagram via Playwright |
 
