@@ -46,6 +46,10 @@ def dismiss_popups(page):
             pass
 
 def post_to_instagram(image_path, caption, headless=True, aspect="original"):
+    """
+    Publishes an image with caption & hashtags to Instagram in its original dimensions.
+    Independent and self-contained — does NOT trigger any external camera/EXIF skills.
+    """
     if not os.path.exists(SESSION_DIR):
         log(f"Error: Keine Session gefunden in '{SESSION_DIR}'.")
         log("Bitte führe zuerst 'python instagram_auth.py' aus, um dich anzumelden.")
@@ -59,6 +63,7 @@ def post_to_instagram(image_path, caption, headless=True, aspect="original"):
     log(f"\n[Instagram Auto-Post]")
     log(f"Bild: {os.path.basename(abs_image_path)}")
     log(f"Bildpfad: {abs_image_path}")
+    log(f"Format/Aspect: {aspect}")
 
     with sync_playwright() as p:
         context = p.chromium.launch_persistent_context(
@@ -113,15 +118,30 @@ def post_to_instagram(image_path, caption, headless=True, aspect="original"):
             page.locator("input[type='file']").first.set_input_files(abs_image_path)
             time.sleep(3)
 
-            log("-> 4. Weiter zu Filter...")
+            # 4. Aspect Ratio selection (Original Dimensions by default)
+            log(f"-> 4. Wähle Seitenverhältnis / Original-Dimensionen ('{aspect}')...")
+            try:
+                crop_btn = page.locator("div[role='dialog'] svg[aria-label='Select crop'], div[role='dialog'] button:has(svg[aria-label*='crop' i])").first
+                if crop_btn.count() > 0:
+                    crop_btn.click()
+                    time.sleep(1)
+                    target_label = "Original" if aspect.lower() == "original" else aspect
+                    aspect_option = page.locator("div[role='dialog']").get_by_text(target_label, exact=True).first
+                    if aspect_option.count() > 0:
+                        aspect_option.evaluate("el => el.click()")
+                        time.sleep(1)
+            except Exception as crop_err:
+                log(f"Hinweis zu Crop-Auswahl: {crop_err}")
+
+            log("-> 5. Weiter zu Filter...")
             page.locator("div[role='dialog']").get_by_text("Next", exact=True).click(force=True)
             time.sleep(2)
 
-            log("-> 5. Weiter zu Bildunterschrift...")
+            log("-> 6. Weiter zu Bildunterschrift...")
             page.locator("div[role='dialog']").get_by_text("Next", exact=True).click(force=True)
             time.sleep(2)
 
-            log("-> 6. Caption & Tags im Editor eintragen...")
+            log("-> 7. Caption & Tags im Editor eintragen...")
             caption_box = page.locator("div[role='dialog'] div[contenteditable='true'], div[role='dialog'] div[aria-label*='caption' i], div[role='dialog'] div[role='textbox']").first
             if caption_box.count() > 0:
                 caption_box.click()
@@ -129,11 +149,11 @@ def post_to_instagram(image_path, caption, headless=True, aspect="original"):
                 page.keyboard.type(caption, delay=2)
                 time.sleep(1)
 
-            log("-> 7. Veröffentliche Beitrag (Klicke auf 'Share')...")
+            log("-> 8. Veröffentliche Beitrag (Klicke auf 'Share')...")
             share_el = page.locator("div[role='dialog']").get_by_text("Share", exact=True)
             share_el.evaluate("el => el.click()")
 
-            log("-> 8. Warte auf Bestätigung von Instagram...")
+            log("-> 9. Warte auf Bestätigung von Instagram...")
             success = False
             for _ in range(35):
                 time.sleep(2)
@@ -146,7 +166,7 @@ def post_to_instagram(image_path, caption, headless=True, aspect="original"):
                     break
 
             if success:
-                log(">> ERFOLG: Beitrag mit vollständiger Caption & Hashtags erfolgreich geteilt!\n")
+                log(">> ERFOLG: Beitrag mit Original-Dimensionen und Caption/Tags geteilt!\n")
             else:
                 log(">> Hinweis: Upload-Vorgang abgeschlossen.\n")
 
@@ -166,12 +186,12 @@ def post_to_instagram(image_path, caption, headless=True, aspect="original"):
             return False
 
 def main():
-    parser = argparse.ArgumentParser(description="Instagram Auto-Poster via Playwright")
+    parser = argparse.ArgumentParser(description="Instagram Auto-Poster via Playwright in Original Dimensions")
     parser.add_argument("--image", help="Pfad zum Bild")
     parser.add_argument("--caption", help="Bildunterschrift und Hashtags")
     parser.add_argument("--caption-file", help="Pfad zu einer Textdatei mit der Caption")
     parser.add_argument("--queue", help="JSON-Datei mit mehreren Posts")
-    parser.add_argument("--aspect", choices=["original", "1:1", "4:5", "16:9"], default="original", help="Seitenverhältnis")
+    parser.add_argument("--aspect", choices=["original", "1:1", "4:5", "16:9"], default="original", help="Seitenverhältnis (Standard: original)")
     parser.add_argument("--headless", action="store_true", default=True, help="Browser im Hintergrund ausführen")
     parser.add_argument("--delay", type=int, default=45, help="Verzögerung in Sekunden zwischen Posts")
 
@@ -181,7 +201,7 @@ def main():
         with open(args.queue, "r", encoding="utf-8") as f:
             queue_data = json.load(f)
         total = len(queue_data)
-        log(f"Starte Queue mit {total} Beiträgen...")
+        log(f"Starte Queue mit {total} Beiträgen (Standard-Format: {args.aspect})...")
         for idx, item in enumerate(queue_data, start=1):
             img = item.get("image")
             cap = item.get("caption", "")
