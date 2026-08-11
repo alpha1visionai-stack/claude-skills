@@ -1,0 +1,4 @@
+.session/
+*.png
+__pycache__/
+*.pyc
