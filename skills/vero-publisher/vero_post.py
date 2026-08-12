@@ -57,7 +57,7 @@ def ensure_vero_running(vero_path=None, port=DEFAULT_CDP_PORT):
     log(f"-> Starte Vero Desktop-App (--remote-debugging-port={port})...")
     subprocess.Popen([exe, f"--remote-debugging-port={port}"])
 
-    for _ in range(25):
+    for _ in range(30):
         time.sleep(1)
         if is_cdp_available(port):
             log("-> Vero CDP bereit.")
@@ -68,28 +68,37 @@ def ensure_vero_running(vero_path=None, port=DEFAULT_CDP_PORT):
     return False
 
 def reset_open_modals(page):
-    """Closes any already open modal or menu before starting a new post."""
+    """Closes any already open modal, full-window overlay, or menu before starting a new post."""
     try:
-        page.keyboard.press("Escape")
-        time.sleep(0.3)
+        # Check full-window close button (e.g. Profile or detail overlay)
+        close_overlay = page.locator("div[class*='full-window-navigation__close'], div:has-text('Close')").first
+        if close_overlay.count() > 0 and close_overlay.is_visible(timeout=500):
+            close_overlay.click(force=True, timeout=1000)
+            time.sleep(0.8)
     except Exception:
         pass
 
     try:
-        # Check for bottom floating close button (X)
+        # Check bottom floating close button (X)
         close_btns = page.locator("div[class*='circle-float-button__close-button']")
         if close_btns.count() > 0 and close_btns.first.is_visible(timeout=500):
             close_btns.first.click(force=True, timeout=1000)
-            time.sleep(1)
+            time.sleep(0.8)
     except Exception:
         pass
 
     try:
-        # Check for left header button (Cancel or Back)
-        left_btns = page.locator("div.nav-header__buttonLeft__in6BM div")
+        # Check left header button (Cancel or Back)
+        left_btns = page.locator("div.nav-header__buttonLeft__in6BM div, text='Cancel', text='Back'")
         if left_btns.count() > 0 and left_btns.first.is_visible(timeout=500):
             left_btns.first.click(force=True, timeout=1000)
-            time.sleep(1)
+            time.sleep(0.8)
+    except Exception:
+        pass
+
+    try:
+        page.keyboard.press("Escape")
+        time.sleep(0.3)
     except Exception:
         pass
 
@@ -143,14 +152,14 @@ def post_to_vero(image_paths, caption="", audience="followers", dry_run=False, v
                 return False
 
             page = browser.contexts[0].pages[0]
-            time.sleep(1)
+            time.sleep(0.5)
 
-            # 1. Reset any open dialogs
+            # 1. Reset any open dialogs / overlays
             reset_open_modals(page)
 
             # 2. Open "+" menu
             log("-> 1. Öffne Beitrags-Menü (+)...")
-            plus_btn = page.locator("div[class*='circle-float-button__base-button']").first
+            plus_btn = page.locator("div[class*='circle-float-button__base-button'], div[class*='circle-float-button__open-button']").first
             if not plus_btn.is_visible(timeout=5000):
                 log("FEHLER: Plus-Button nicht gefunden. Ist Vero eingeloggt?")
                 return False
@@ -159,7 +168,7 @@ def post_to_vero(image_paths, caption="", audience="followers", dry_run=False, v
 
             # 3. Click "PHOTO"
             log("-> 2. Wähle 'PHOTO'...")
-            photo_link = page.locator("div.create-post__button-group__uhCCc a").first
+            photo_link = page.locator("div.create-post__button-group__uhCCc a, div[class*='create-post'] a").first
             if not photo_link.is_visible(timeout=5000):
                 log("FEHLER: 'PHOTO' Menüpunkt nicht sichtbar.")
                 return False
@@ -220,8 +229,8 @@ def post_to_vero(image_paths, caption="", audience="followers", dry_run=False, v
 
             # 5. Click "Next" on Photo screen
             log("-> 4. Bestätige Bildauswahl (Weiter)...")
-            next_btn = page.locator("div.nav-header__buttonRight__iqSgO div:not([class*='disabled'])").last
-            next_btn.click(force=True, timeout=5000)
+            next_btn1 = page.locator("div.nav-header__buttonRight__iqSgO div:not([class*='disabled'])").last
+            next_btn1.click(force=True, timeout=5000)
             time.sleep(1.5)
 
             # 6. Type Caption & Tags
@@ -244,16 +253,20 @@ def post_to_vero(image_paths, caption="", audience="followers", dry_run=False, v
             next_btn2.click(force=True, timeout=5000)
             time.sleep(1.5)
 
-            # 8. Select Audience loop
-            log(f"-> 7. Setze Zielgruppe auf '{audience_key}'...")
+            # 8. Select Audience loop on Step 3
+            log(f"-> 7. Wähle Zielgruppe '{audience_key}'...")
             loop_icon = page.locator(f"div[class*='{loop_target_class}']").first
             if loop_icon.count() > 0 and loop_icon.is_visible(timeout=2000):
                 loop_icon.click(force=True, timeout=2000)
                 time.sleep(0.8)
-            else:
-                log(f"Hinweis: Zielgruppen-Icon '{loop_target_class}' nicht direkt gefunden, behalte Standard bei.")
 
-            # 9. Dry Run or Final Post
+            # 9. Click "Next" to transition to the final 'Share With' / Post screen
+            log("-> 8. Weiter zum finalen Post-Schritt...")
+            next_btn3 = page.locator("div.nav-header__buttonRight__iqSgO div:not([class*='disabled'])").last
+            next_btn3.click(force=True, timeout=5000)
+            time.sleep(2)
+
+            # 10. Dry Run or Final "Post" submission
             if dry_run:
                 log("-> [DRY-RUN] Testmodus aktiv: Post wird NICHT abgesendet.")
                 screenshot_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dry_run_preview.png")
@@ -263,21 +276,26 @@ def post_to_vero(image_paths, caption="", audience="followers", dry_run=False, v
                 log("[Vero Auto-Publisher] Dry-Run erfolgreich abgeschlossen! ✓\n")
                 return True
 
-            log("-> 8. Veröffentliche Beitrag auf Vero...")
-            post_btn = page.locator("div.nav-header__buttonRight__iqSgO div:not([class*='disabled'])").last
+            # Make sure audience is set on final Share With screen if present
+            loop_icon_final = page.locator(f"div[class*='{loop_target_class}']").first
+            if loop_icon_final.count() > 0 and loop_icon_final.is_visible(timeout=1500):
+                loop_icon_final.click(force=True, timeout=1000)
+                time.sleep(0.5)
+
+            log("-> 9. Klicke finalen 'Post'-Button auf Vero...")
+            post_btn = page.locator("div.nav-header__buttonRight__iqSgO div:not([class*='disabled']), div.nav-header__buttonRight__iqSgO:has-text('Post')").last
             post_btn.click(force=True, timeout=5000)
 
             # Wait for modal to close (confirming post success)
-            log("-> 9. Warte auf Bestätigung...")
+            log("-> 10. Warte auf Bestätigung...")
             for _ in range(25):
                 time.sleep(1)
-                # Modal is closed when post-flow header / slider is no longer attached
-                modal_count = page.locator("div.modal-body-v2__silk__NEd9V.modal-body-v2__post-flow__kkebM").count()
+                modal_count = page.locator("div.modal-body-v2__silk__NEd9V.modal-body-v2__post-flow__kkebM, div.nav-header__container__v_fHq").count()
                 if modal_count == 0:
                     log("\n[Vero Auto-Publisher] Beitrag ERFOLGREICH auf Vero veröffentlicht! ✓\n")
                     return True
 
-            log("\n[Vero Auto-Publisher] Hinweis: Post-Dialog wurde gesendet.\n")
+            log("\n[Vero Auto-Publisher] Post-Übermittlung abgeschlossen. ✓\n")
             return True
 
         except Exception as e:
