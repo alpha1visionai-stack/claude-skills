@@ -1,4 +1,6 @@
 skills/agy-installer/assets/*.exe
-
+**/.session/
 __pycache__/
+**/__pycache__/
 *.pyc
+**/dry_run_preview.png
