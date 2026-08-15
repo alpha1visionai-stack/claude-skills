@@ -1,23 +1,40 @@
 ---
 name: fast-detect-gpt
-description: Zero-Shot Erkennung von KI-generierten Texten (ChatGPT, GPT-4, LLaMA, Claude, Mistral) mit Fast-DetectGPT (Bao et al., ICLR 2024). Analysiert Text oder Dateien auf KI-Echtheit, berechnet die exakte KI-Wahrscheinlichkeit und deckt KI-Slop auf. Speichert automatisch vollständige Markdown-Berichte (.md) im Dateiverzeichnis bzw. im Ordner dokumente/. Verwenden, wenn der Benutzer sagt oder andeutet: "bitte prüfe den text auf KI generierung", "prüfe auf KI", "ist dieser Text von einer KI geschrieben?", "KI-Check", "KI Text Detektor", "prüfe Datei auf KI", "KI Erkennung" oder ähnliche Aufforderungen zur KI-Texterkennung.
+description: Hybrid KI-Texterkennung (Fast-DetectGPT Wahrscheinlichkeitskrümmung auf GPU + Stilometrie/AI-Slop + Burstiness & Struktur). Analysiert Text oder Dateien (.pdf, .md, .txt) objektiv auf KI-Echtheit und speichert strukturierte Markdown-Berichte (.md) mit Fundstellennachweis ab. Verwenden, wenn der Benutzer sagt oder andeutet: "bitte prüfe den text auf KI generierung", "prüfe auf KI", "ist dieser Text von einer KI geschrieben?", "KI-Check", "KI Text Detektor", "prüfe Datei auf KI", "KI Erkennung" oder ähnliche Aufforderungen zur KI-Texterkennung.
 ---
 
-# Fast-DetectGPT — AI Text Detector Skill
+# Fast-DetectGPT Hybrid — AI Text Detector Skill
 
-Dieser Skill analysiert übergebene Texte oder Dateien (PDF, Markdown, Textdateien, Aufsätze, Hausarbeiten, Blogbeiträge, Quelltexte), um objektiv und mathematisch fundiert festzustellen, ob sie von einer künstlichen Intelligenz (ChatGPT, GPT-4, Claude, Mistral, LLaMA) oder von einem Menschen verfasst wurden.
+Dieser Skill analysiert übergebene Texte oder Dateien (PDF, Markdown, Textdateien, Aufsätze, Hausarbeiten, Blogbeiträge, Quelltexte) anhand eines **3-Säulen-Hybridmodells**:
+
+1. **Mathematische Wahrscheinlichkeitskrümmung** (*Fast-DetectGPT, Bao et al. ICLR 2024* auf lokaler GPU)
+2. **Stilometrische AI-Slop & Phrasen-Analyse** (Erkennung typischer Füllwörter, Einleitungsfloskeln & Buzzwords)
+3. **Statistische Burstiness & Struktur-Metriken** (Satzlängen-Varianz $CV = \sigma / \mu$ & Listen-Dichte)
 
 ---
 
-## ⚙️ Funktionsweise im Hintergrund
+## ⚙️ Die 3 Säulen der Hybrid-Analyse
 
-Fast-DetectGPT (*Bao et al., ICLR 2024*) berechnet die **Krümmung der bedingten Wahrscheinlichkeit** (*Conditional Probability Curvature*) über eine geschlossene analytische Formel in einem einzigen Modell-Durchlauf (Single Forward Pass auf der lokalen NVIDIA RTX GPU):
+```
+                  ┌────────────────────────────────────────────────────────┐
+                  │              HYBRID KI-BEWERTUNG (100 %)               │
+                  └──────────────────────────┬─────────────────────────────┘
+                                             │
+         ┌───────────────────────────────────┼──────────────────────────────────┐
+         ▼ (60 %)                            ▼ (25 %)                           ▼ (15 %)
+┌──────────────────────────┐       ┌──────────────────────────┐       ┌──────────────────────────┐
+│ 1. MATHEMATIK            │       │ 2. STILOMETRIE (SLOP)    │       │ 3. STRUKTUR & BURSTINESS │
+├──────────────────────────┤       ├──────────────────────────┤       ├──────────────────────────┤
+│ • Wahrscheinlichkeits-   │       │ • Einleitungsfloskeln    │       │ • Satzrhythmus-Varianz   │
+│   krümmung (Curvature)   │       │ • Stereotype Konnektoren │       │   ($CV = \sigma / \mu$)  │
+│ • Log-Likelihood Ratio   │       │ • KI-Lieblings-Buzzwords │       │ • Listen- & Bullet-Ratio │
+│ • Zero-Shot GPU-Inferenz │       │ • Fundstellen mit Zeilen │       │ • Absatz-Symmetrie       │
+└──────────────────────────┘       └──────────────────────────┘       └──────────────────────────┘
+```
 
-$$\text{Discrepancy} = \frac{\sum \log p(x_i) - \mu_{\text{ref}}}{\sqrt{\sum \sigma^2_{\text{ref}}}}$$
-
-* **Kriterium > +1.5 ($\ge$ 75 %)**: 🔴 **Sehr wahrscheinlich KI-generiert** (geringe Varianz, extrem vorhersehbare Token).
-* **Kriterium 0.0 bis +1.5 (40 % – 75 %)**: 🟡 **Gemischt / Überarbeitet** (Menschlicher Text mit KI-Politur oder stark formalisierte Fachsprache).
-* **Kriterium < 0.0 (< 40 %)**: 🟢 **Sehr wahrscheinlich menschlich** (hohe natürliche Wort- und Satzrhythmus-Varianz / Burstiness).
+* **Gesamtscore $\ge$ 75 %**: 🔴 **Sehr wahrscheinlich KI-generiert** (Monotoner Rhythmus, hohe Slop-Dichte, hohe Vorhersehbarkeit).
+* **Gesamtscore 40 % – 75 %**: 🟡 **Gemischt / Teilweise KI-unterstützt** (Menschlicher Text mit KI-Politur oder stark formalisierte Fachsprache).
+* **Gesamtscore < 40 %**: 🟢 **Sehr wahrscheinlich menschlich** (Hohe natürliche Satzrhythmus-Varianz $CV \ge 0.55$, organische Wortwahl).
 
 ---
 
@@ -27,12 +44,12 @@ Die lokale Fast-DetectGPT-Installation befindet sich unter:
 `D:\OneDrive\Development\fast-detect-gpt`
 
 ### 1. Bei direkt im Chat eingefügtem Text (Copy & Paste):
-Führe das Python-Tool direkt über `uv run` aus (Nutzt GPU `cuda`):
+Führe das Python-Tool direkt über `uv run` auf der GPU aus:
 
 ```bash
 uv run --directory "D:\OneDrive\Development\fast-detect-gpt" python detect_text.py --text "<Hier steht der zu prüfende Text>" --device cuda
 ```
-> **Automatischer Speicherort:** Wird automatisch als `.md`-Bericht in das Verzeichnis `./dokumente/` des Projektordners geschrieben (z. B. `dokumente/ki_analyse_20260815_115031_beispiel.md`) und **enthält den vollständigen analysierten Originaltext**.
+> **Automatischer Speicherort:** Wird automatisch als `.md`-Bericht in das Verzeichnis `./dokumente/` des Projektordners geschrieben (z. B. `dokumente/ki_analyse_YYYYMMDD_HHMMSS_<snippet>.md`) und **enthält den vollständigen analysierten Originaltext**.
 
 ### 2. Bei Dateien (.pdf, .txt, .md):
 Übergib den Dateipfad mit dem `--file` Parameter:
@@ -48,15 +65,16 @@ uv run --directory "D:\OneDrive\Development\fast-detect-gpt" python detect_text.
 
 Fasse das Ergebnis nach der Ausführung für den Benutzer in folgender klarer Struktur zusammen und verlinke immer den erzeugten Bericht:
 
-1. **📊 1. Analyse-Ergebnis:**
-   * **Fast-DetectGPT Kriterium (Curvature):** z. B. `-0.6152`
-   * **Mittlere KI-Wahrscheinlichkeit:** z. B. `25.9 %`
-   * **Einstufung:** 🟢 Menschlich / 🟡 Gemischt / 🔴 KI-generiert
-   * **Analysierter Umfang:** z. B. `60 Abschnitte (17.186 Wörter / 50.717 Tokens)`
+1. **📊 1. Hybrid-Gesamtergebnis & Kernmetriken:**
+   * **🎯 Gesamteinstufung (Hybrid):** z. B. `🟢 Sehr wahrscheinlich menschlich verfasst (17.9 %)`
+   * **1. Fast-DetectGPT Curvature:** z. B. `-0.6152` (`25.9 %` KI-Wahrscheinlichkeit)
+   * **2. Burstiness (Satzrhythmus):** z. B. $CV = 1.23$ (Hohe Varianz / Lebendiger Rhythmus)
+   * **3. AI-Slop & Phrasen:** z. B. `9 Fundstellen (0.5 pro 1000 Wörter)`
+   * **4. Formatierung:** z. B. `2.4 % Bulletpoints`
    * **Generierter Bericht:** Clickable Link `[dateiname_ki_analyse.md](file:///pfad/zur/datei_ki_analyse.md)`
 
-2. **🔍 2. Stilistische Analyse & Auffälligkeiten:**
-   * Welche konkreten sprachlichen Merkmale (KI-Floskeln, stereotype Konnektoren, monotone Syntax vs. organische Gedankenführung) stützen den berechneten Score?
+2. **🔍 2. Erkannte Auffälligkeiten & Textstellen:**
+   * Konkrete Signalwörter oder Phrasen mit Kontext nennen.
 
 3. **💡 3. Handlungsempfehlung:**
-   * Konkrete Optimierungsvorschläge bei Bedarf.
+   * Konkrete Hinweise zur Textoptimierung (z. B. Satzrhythmus beleben, Floskeln ersetzen).
