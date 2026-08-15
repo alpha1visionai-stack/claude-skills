@@ -29,7 +29,10 @@ This directory contains shared skills available across all your Claude Code proj
 | `skill-share` | Create and share skills via Slack (Legacy). | `skill-share.md` |
 | `ki-text-check` | Check German text for AI authorship — evidence-based report, offline. | `ki-text-check/` |
 | `ki-text-umschreiben` | Rewrite AI-sounding German text against the check findings. | `ki-text-umschreiben/` |
+| `fast-detect-gpt` | Zero-Shot AI text detection using Fast-DetectGPT curvature calculation on GPU. | `fast-detect-gpt/` |
 | `gopro-exif-injector` | Realistic GoPro EXIF injection, optical sensor realism & DxO Nik 7 Color Efex filter pipeline. | `gopro-exif-injector/` |
+| `instagram-publisher` | Automated publishing of photos with captions to Instagram via Playwright session. | `instagram-publisher/` |
+| `vero-publisher` | Automated publishing of photos to Vero via Playwright & Electron CDP. | `vero-publisher/` |
 
 ## Skill Creator Tools
 

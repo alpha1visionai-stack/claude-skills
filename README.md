@@ -233,6 +233,7 @@ npx skills add alpha1visionai-stack/claude-skills@brainstorming -g -y
 |---|---|---|
 | `ki-text-check` | `npx skills add alpha1visionai-stack/claude-skills@ki-text-check -g -y` | Deutsche Texte auf KI-Erzeugung prüfen — Indizienbefund mit Fundstellen statt Blackbox-Prozentzahl, vollständig offline |
 | `ki-text-umschreiben` | `npx skills add alpha1visionai-stack/claude-skills@ki-text-umschreiben -g -y` | Maschinell klingende Texte überarbeiten — gezielt gegen die Befunde aus ki-text-check, ohne Fakten zu erfinden |
+| `fast-detect-gpt` | `npx skills add alpha1visionai-stack/claude-skills@fast-detect-gpt -g -y` | Zero-Shot KI-Texterkennung mit Fast-DetectGPT (Bao et al., ICLR 2024) — berechnet Krümmung der bedingten Wahrscheinlichkeit & KI-Wahrscheinlichkeit auf GPU |
 
 ### Research & Data
 | Skill | Install | Beschreibung |
